@@ -1,8 +1,8 @@
 #pragma once
 #include "head.hpp"
-#include <d3d9.h>
-#include <d3dx9.h>
-#include <dwmapi.h>
+#include "d3d9.h"
+#include "d3dx9.h"
+#include "dwmapi.h"
 #include <process.h>
 
 using drawFunction = function<void()>;
