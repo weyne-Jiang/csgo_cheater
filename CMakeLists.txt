@@ -15,6 +15,9 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/Src src_list)
 #添加宏定义，unicode编码
 add_definitions("-DUNICODE" "-D_UNICODE")
 
+file(GLOB_RECURSE header_list  *.h *.hpp)
+source_group("Header Files" FILES ${header_list}) 
+
 #自己的头文件目录
 include_directories(${PROJECT_SOURCE_DIR}/Include/DirectX_SDK)
 include_directories(${PROJECT_SOURCE_DIR}/Include/)
@@ -23,7 +26,7 @@ include_directories(${PROJECT_SOURCE_DIR}/Include/)
 link_directories(${PROJECT_SOURCE_DIR}/Lib/DirectX_SDK/x86)
 
 #生成应用程序
-add_executable(csgo_cheater ${src_list})
+add_executable(csgo_cheater ${src_list} ${header_list})
 
 #添加链接库
 target_link_libraries(csgo_cheater d3d9.lib d3dx9.lib d3dx9d.lib dwmapi.lib)
