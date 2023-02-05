@@ -33,8 +33,8 @@ bool PlayerController::initAddr()
 	_matrixAddr = (LPVOID)((int)_pProcess->getModule("client.dll")->getModuleAddr()+setting::offset::client::a_matrix);
 	_playerAddr = (LPVOID)((int)_pProcess->getModule("server.dll")->getModuleAddr()+setting::offset::server::a_player);
 
-	SIZE_T readSize = HelpFunc::readMemory(_pProcess->getProcessHandle(), (LPCVOID)((int)_pProcess->getModule("engine.dll")->getModuleAddr() + setting::offset::engine::a_aim), &_angleAddr, 4);
-	HelpFunc::errorCheck(readSize, "读取屏幕坐标基址失败");
+	SIZE_T readSize = BaseFunc::readMemory(_pProcess->getProcessHandle(), (LPCVOID)((int)_pProcess->getModule("engine.dll")->getModuleAddr() + setting::offset::engine::a_aim), &_angleAddr, 4);
+	BaseFunc::errorCheck(readSize, "读取屏幕坐标基址失败");
 
 #ifdef _DEBUG
 	printf("自己矩阵基址 : 0x%8X \n", _matrixAddr);
@@ -50,7 +50,7 @@ errorType PlayerController::updatePlayer()
 {
 	// 读取房间人数
 	errorType res = successDone;
- 	SIZE_T readSize = HelpFunc::readMemory(_pProcess->getProcessHandle(), (LPCVOID)((int)_pProcess->getModule("server.dll")->getModuleAddr() + setting::offset::server::a_playcount), &_roomCount, sizeof(_roomCount));
+ 	SIZE_T readSize = BaseFunc::readMemory(_pProcess->getProcessHandle(), (LPCVOID)((int)_pProcess->getModule("server.dll")->getModuleAddr() + setting::offset::server::a_playcount), &_roomCount, sizeof(_roomCount));
 	if (0 == readSize)
 		return roomCountErr;
 
@@ -62,7 +62,7 @@ errorType PlayerController::updatePlayer()
 		name += "号";
 		// 读取玩家基址
 		_playerMap[name] = make_shared<player>();
-		readSize = HelpFunc::readMemory(_pProcess->getProcessHandle(), (LPCVOID)((int)_playerAddr + 0x18*i), &_playerMap[name]->_curAddr, 4);
+		readSize = BaseFunc::readMemory(_pProcess->getProcessHandle(), (LPCVOID)((int)_playerAddr + 0x18*i), &_playerMap[name]->_curAddr, 4);
 
 #ifdef _DEBUG
 		printf("玩家地址 : 0x%8X \n", _playerMap[name]->_curAddr);
@@ -74,9 +74,9 @@ errorType PlayerController::updatePlayer()
 		}
 
 		// 读取玩家具体信息
-		readSize = HelpFunc::readMemory(_pProcess->getProcessHandle(), (LPCVOID)((int)_playerMap[name]->_curAddr+setting::offset::server::b_camp), &_playerMap[name]->_camp, 4);
-		readSize = HelpFunc::readMemory(_pProcess->getProcessHandle(), (LPCVOID)((int)_playerMap[name]->_curAddr + setting::offset::server::b_blood), &_playerMap[name]->_blood, 4);
-		readSize = HelpFunc::readMemory(_pProcess->getProcessHandle(), (LPCVOID)((int)_playerMap[name]->_curAddr + setting::offset::server::b_posX), &_playerMap[name]->_location, 12);
+		readSize = BaseFunc::readMemory(_pProcess->getProcessHandle(), (LPCVOID)((int)_playerMap[name]->_curAddr+setting::offset::server::b_camp), &_playerMap[name]->_camp, 4);
+		readSize = BaseFunc::readMemory(_pProcess->getProcessHandle(), (LPCVOID)((int)_playerMap[name]->_curAddr + setting::offset::server::b_blood), &_playerMap[name]->_blood, 4);
+		readSize = BaseFunc::readMemory(_pProcess->getProcessHandle(), (LPCVOID)((int)_playerMap[name]->_curAddr + setting::offset::server::b_posX), &_playerMap[name]->_location, 12);
 		if (0 == readSize)
 			res = playerInfoErr;
 
@@ -92,7 +92,7 @@ errorType PlayerController::updatePlayer()
 
 errorType PlayerController::updateAngle()
 {
-	SIZE_T readSize = HelpFunc::readMemory(_pProcess->getProcessHandle(), (LPCVOID)((int)_angleAddr + setting::offset::engine::b_angleY), &_aimAngle, sizeof(float) * 2);
+	SIZE_T readSize = BaseFunc::readMemory(_pProcess->getProcessHandle(), (LPCVOID)((int)_angleAddr + setting::offset::engine::b_angleY), &_aimAngle, sizeof(float) * 2);
 
 	if (0 == readSize)
 		return angleErr;
@@ -105,7 +105,7 @@ errorType PlayerController::updateAngle()
 
 errorType PlayerController::updateMatrix()
 {
-	SIZE_T readSize = HelpFunc::readMemory(_pProcess->getProcessHandle(), _matrixAddr, &_selfMatrix, sizeof(float) * 4 * 4);
+	SIZE_T readSize = BaseFunc::readMemory(_pProcess->getProcessHandle(), _matrixAddr, &_selfMatrix, sizeof(float) * 4 * 4);
 	//HelpFunc::errorCheck(readSize, "读取engine模块基址失败"); 这个太猛了，别这样
 	if (0 == readSize)
 		return matrixErr;
@@ -128,7 +128,7 @@ void PlayerController::showMatrix()
 // 写入屏幕坐标
 errorType PlayerController::writeAngle(float* tarAngle)
 {
-	SIZE_T writeSize = HelpFunc::writeMemory(_pProcess->getProcessHandle(), (LPVOID)((int)_angleAddr + setting::offset::engine::b_angleY), tarAngle, sizeof(float) * 2);
+	SIZE_T writeSize = BaseFunc::writeMemory(_pProcess->getProcessHandle(), (LPVOID)((int)_angleAddr + setting::offset::engine::b_angleY), tarAngle, sizeof(float) * 2);
 	if (0 == writeSize)
 		return writeErr;
 	return successDone;
@@ -138,7 +138,7 @@ errorType PlayerController::writeAngle(float* tarAngle)
 errorType PlayerController::writeLocation(string name, float* tarLocation)
 {
 	// 边界判断
-	SIZE_T writeSize = HelpFunc::writeMemory(_pProcess->getProcessHandle(), (LPVOID)((int)_playerMap[name]->_curAddr + setting::offset::server::b_posX), tarLocation, sizeof(float) * 3);
+	SIZE_T writeSize = BaseFunc::writeMemory(_pProcess->getProcessHandle(), (LPVOID)((int)_playerMap[name]->_curAddr + setting::offset::server::b_posX), tarLocation, sizeof(float) * 3);
 	if (0 == writeSize)
 		return writeErr;
 	return successDone;
@@ -148,7 +148,7 @@ errorType PlayerController::writeLocation(string name, float* tarLocation)
 errorType PlayerController::writeBlood(string name, size_t tarBlood)
 {
 	// 边界判断
-	SIZE_T writeSize = HelpFunc::writeMemory(_pProcess->getProcessHandle(), (LPVOID)((int)_playerMap[name]->_curAddr + setting::offset::server::b_blood), &tarBlood, sizeof(int));
+	SIZE_T writeSize = BaseFunc::writeMemory(_pProcess->getProcessHandle(), (LPVOID)((int)_playerMap[name]->_curAddr + setting::offset::server::b_blood), &tarBlood, sizeof(int));
 	if (0 == writeSize)
 		return writeErr;
 	return successDone;

@@ -1,4 +1,5 @@
 #pragma once
+
 #include "head.hpp"
 #include "HelpFunc.hpp"
 
@@ -54,6 +55,12 @@ public:
 
 	// 展示指定信息
 	void showInfo() = delete;
+
+	//通过进程名获取进程ID
+	DWORD getProcessId(string processName);
+
+	//通过进程ID获取进程句柄
+	HANDLE getProcessHandle(DWORD processId, DWORD access);
 
 	// 获取进程句柄
 	HANDLE getProcessHandle();

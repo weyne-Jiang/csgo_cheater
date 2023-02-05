@@ -12,10 +12,12 @@
 #include <memory>
 #include <functional>
 using std::string;
+using std::wstring;
 using std::map;
 using std::vector;
 using std::unordered_map;
 using std::cout;
+using std::cerr;
 using std::endl;
 using std::pair;
 using std::unique_ptr;

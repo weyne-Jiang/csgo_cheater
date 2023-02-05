@@ -2,7 +2,8 @@
 #include "ProcessController.hpp"
 #include "PlayerController.hpp"
 #include "DrawHelper.hpp"
-
+#include "Cheater.hpp"
+using namespace DrawHelper;
 //获取自瞄角度
 void get_aimbot_angle(float* self_location, float* player_location, float* aim_angle, bool squat, float recoil)
 {
@@ -24,34 +25,33 @@ void get_aimbot_angle(float* self_location, float* player_location, float* aim_a
 
 void drawTest()
 {
+	startDraw();
 	float point1[2] = { 200, 300 };
 	float point2[2] = { 1, 70 };
-	drawLine(point1, point2, 5, D3DCOLOR_XRGB(0, 255, 0));
+	drawLine(point1, point2, 5, D3DCOLOR_XRGB(122, 255, 0));
+	//drawRect(23, 45, 155, 300,567, D3DCOLOR_XRGB(122, 255, 0));
+	endDraw();
 }
 
 int main(int args,char **arges)
 {
-	//HANDLE processHandle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, 15304);
-	//ProcessController* ptr = ProcessController::getInstence();
-	//ptr->loadModule("client.dll");
-	//ptr->loadModule("server.dll");
-	//ptr->loadModule("engine.dll");
-	//PlayerController* ptr2 = PlayerController::getInstence();
-	//PlayerController* ptr1 = PlayerController::getInstence();
+	PlayerController* ptr1 = PlayerController::getInstence();
 
-	//ptr1->updatePlayer();
-	//ptr1->updateAngle();
-	//
-	//ptr1->updateMatrix();
-	//ptr1->showMatrix();
+	ptr1->updatePlayer();
+	ptr1->updateAngle();
+	
+	ptr1->updateMatrix();
+	ptr1->showMatrix();
 	// 
-	MessageBox(NULL, L"开始工作", L"提示！", 0);
-
-	HWND curHwnd = FindWindowA("Direct3DWindowClass", "ShadowVolume");
+	MessageBox(NULL, "开始工作", "提示！", 0);
+	//HWND curHwnd = FindWindowA("Direct3DWindowClass", "ShadowVolume");
+	HWND curHwnd = FindWindowA("Valve001", "Counter-Strike: Global Offensive - Direct3D 9");
 	creatTransWin(curHwnd);
 	initD3d();
 	setDrawFunc(drawTest);
 	messageLoop();
+	
+	//auto& haha = Cheater::getInstence();
 
 
 	return 0;
