@@ -15,6 +15,8 @@ private:
 	Cheater();
     ~Cheater();
 
+private:
+	PlayerController* _pPlayerController;
 
 };
 

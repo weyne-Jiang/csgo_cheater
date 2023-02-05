@@ -39,7 +39,6 @@ int main(int args,char **arges)
 
 	ptr1->updatePlayer();
 	ptr1->updateAngle();
-	
 	ptr1->updateMatrix();
 	ptr1->showMatrix();
 	// 
@@ -51,8 +50,7 @@ int main(int args,char **arges)
 	setDrawFunc(drawTest);
 	messageLoop();
 	
-	//auto& haha = Cheater::getInstence();
-
+	auto& haha = Cheater::getInstence();
 
 	return 0;
 }

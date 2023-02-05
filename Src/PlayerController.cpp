@@ -48,6 +48,13 @@ bool PlayerController::initAddr()
 
 errorType PlayerController::updatePlayer()
 {
+
+	//读取人数
+	// 建立键值表
+	// 读取单个玩家基址
+	// 读取具体信息
+	// 若由于玩家退出加入，导致中间地址空挡，解决待定
+
 	// 读取房间人数
 	errorType res = successDone;
  	SIZE_T readSize = BaseFunc::readMemory(_pProcess->getProcessHandle(), (LPCVOID)((int)_pProcess->getModule("server.dll")->getModuleAddr() + setting::offset::server::a_playcount), &_roomCount, sizeof(_roomCount));
@@ -74,7 +81,7 @@ errorType PlayerController::updatePlayer()
 		}
 
 		// 读取玩家具体信息
-		readSize = BaseFunc::readMemory(_pProcess->getProcessHandle(), (LPCVOID)((int)_playerMap[name]->_curAddr+setting::offset::server::b_camp), &_playerMap[name]->_camp, 4);
+		readSize = BaseFunc::readMemory(_pProcess->getProcessHandle(), (LPCVOID)((int)_playerMap[name]->_curAddr + setting::offset::server::b_camp), &_playerMap[name]->_camp, 4);
 		readSize = BaseFunc::readMemory(_pProcess->getProcessHandle(), (LPCVOID)((int)_playerMap[name]->_curAddr + setting::offset::server::b_blood), &_playerMap[name]->_blood, 4);
 		readSize = BaseFunc::readMemory(_pProcess->getProcessHandle(), (LPCVOID)((int)_playerMap[name]->_curAddr + setting::offset::server::b_posX), &_playerMap[name]->_location, 12);
 		if (0 == readSize)

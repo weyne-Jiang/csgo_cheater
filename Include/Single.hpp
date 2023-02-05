@@ -24,7 +24,7 @@ public:
 
 		return _pInstance;
 	}
-
+	
 protected:
 	Single_T() = default;
 	~Single_T() = default;
@@ -61,7 +61,6 @@ public:
 
 		return _pInstance;
 	}
-
 
 	Single()
 	{
