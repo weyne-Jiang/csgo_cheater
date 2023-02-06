@@ -62,6 +62,7 @@ public:
 		return _pInstance;
 	}
 
+protected:
 	Single()
 	{
 		cout << "Single()\n";

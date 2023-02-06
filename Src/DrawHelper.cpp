@@ -75,7 +75,7 @@ namespace DrawHelper
 		return true;
 	}
 
-	//加一个指向此类的指针，解决静态函数调用非静态成员的问题。
+	//成员加一个指向此类的指针，解决静态函数调用非静态成员的问题。
 	//消息处理函数
 	LRESULT WinProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	{

@@ -2,7 +2,7 @@
 
 #include "head.hpp"
 #include "ProcessController.hpp"
-#include "HelpFunc.hpp"
+#include "Base.hpp"
 
 typedef struct player
 {

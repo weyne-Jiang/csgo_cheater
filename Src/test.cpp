@@ -1,4 +1,4 @@
-#include "HelpFunc.hpp"
+#include "Base.hpp"
 #include "ProcessController.hpp"
 #include "PlayerController.hpp"
 #include "DrawHelper.hpp"
@@ -33,24 +33,111 @@ void drawTest()
 	endDraw();
 }
 
+template<typename T>
+class father
+{
+public:
+	static shared_ptr<T> getinstance()
+	{
+		if (_pinstance == nullptr)
+			_pinstance = make_shared<T>();
+
+		return _pinstance;
+	}
+
+	static void destory()
+	{
+		//delete _pinstance;
+	}
+
+protected:
+	father()
+	{
+		cout << "father()\n";
+	}
+	~father()
+	{
+		cout << "~father()\n";
+	}
+
+private:
+	static shared_ptr<T> _pinstance;
+	//static T* _pinstance;
+};
+
+template<typename T>
+shared_ptr<T> father<T>::_pinstance = nullptr;
+
+class son : public father<son>
+{
+	friend class father<son>;
+	friend class shared_ptr<son>;
+public:
+
+
+private:
+	son()
+	{
+		cout << "son()\n";
+	}
+	~son()
+	{
+		cout << "~son()\n";
+	}
+};
+
+class fuckyou
+{
+	friend class shared_ptr<fuckyou>;
+public:
+	int a = 0;
+	static std::shared_ptr<fuckyou> create()
+	{
+		struct make_shared_enabler : public fuckyou
+		{};
+		return std::make_shared<make_shared_enabler>();
+	}
+private:
+	fuckyou(){}
+	~fuckyou(){}
+};
+
+
+
+#include <memory>
+class A {
+public:
+	static std::shared_ptr<A> create() 
+	{ 
+		struct make_shared_enabler : public A 
+		{}; 
+		return std::make_shared<make_shared_enabler>(); 
+	}
+private:A() {}
+};
+
 int main(int args,char **arges)
 {
-	PlayerController* ptr1 = PlayerController::getInstence();
+	//PlayerController* ptr1 = PlayerController::getInstence();
 
-	ptr1->updatePlayer();
-	ptr1->updateAngle();
-	ptr1->updateMatrix();
-	ptr1->showMatrix();
-	// 
-	MessageBox(NULL, "开始工作", "提示！", 0);
-	//HWND curHwnd = FindWindowA("Direct3DWindowClass", "ShadowVolume");
-	HWND curHwnd = FindWindowA("Valve001", "Counter-Strike: Global Offensive - Direct3D 9");
-	creatTransWin(curHwnd);
-	initD3d();
-	setDrawFunc(drawTest);
-	messageLoop();
+	//ptr1->updatePlayer();
+	//ptr1->updateAngle();
+	//ptr1->updateMatrix();
+	//ptr1->showMatrix();
+	//// 
+	//MessageBox(NULL, "开始工作", "提示！", 0);
+	////HWND curHwnd = FindWindowA("Direct3DWindowClass", "ShadowVolume");
+	//HWND curHwnd = FindWindowA("Valve001", "Counter-Strike: Global Offensive - Direct3D 9");
+	//creatTransWin(curHwnd);
+	//initD3d();
+	//setDrawFunc(drawTest);
+	//messageLoop();
 	
-	auto& haha = Cheater::getInstence();
+	//auto haha = Cheater::getInstence();
 
+	//auto p = son::getinstance();
+	//son::destory();
+	shared_ptr<fuckyou> fucker = make_shared<fuckyou>();
+	
 	return 0;
 }

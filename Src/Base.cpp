@@ -1,4 +1,4 @@
-#include "HelpFunc.hpp"
+#include "Base.hpp"
 
 namespace BaseFunc
 {

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "head.hpp"
-#include "HelpFunc.hpp"
+#include "Base.hpp"
 
 class ModuleInfo
 {
