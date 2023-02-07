@@ -47,5 +47,5 @@ namespace BaseFunc
 
 namespace BaseData
 {
-
+	
 }

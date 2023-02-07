@@ -137,7 +137,8 @@ int main(int args,char **arges)
 
 	//auto p = son::getinstance();
 	//son::destory();
-	shared_ptr<fuckyou> fucker = make_shared<fuckyou>();
+	auto haha = Cheater::getInstence();
+
 	
 	return 0;
 }
