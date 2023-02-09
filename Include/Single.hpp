@@ -1,3 +1,4 @@
+#pragma once
 #ifndef __SINGLE_HPP__
 #define __SINGLE_HPP__
 
@@ -6,44 +7,6 @@
 using std::shared_ptr;
 
 //懒汉式（延迟加载）单例模版
-//可传参
-template<typename T>
-class Single_T
-{
-public:
-	template<typename... Args>
-	static shared_ptr<T> getInstence(Args&&... args)
-	{
-		//避免每次调用都加锁
-		if (nullptr == _pInstance)
-		{
-			std::lock_guard<std::mutex> lock(_mutex);
-			if (nullptr == _pInstance)
-				_pInstance = std::make_shared<T>(std::forward<Args>(args)...);
-		}
-
-		return _pInstance;
-	}
-	
-protected:
-	Single_T() = default;
-	~Single_T() = default;
-	Single_T(const Single_T&) = delete;
-	Single_T& operator=(const Single_T&) = delete;
-	Single_T(const Single_T&&) = delete;
-	Single_T& operator=(const Single_T&&) = delete;
-
-private:
-	static shared_ptr<T> _pInstance;
-	static std::mutex _mutex;
-};
-
-template<typename T>
-shared_ptr<T> Single_T<T>::_pInstance = nullptr;
-
-template<typename T>
-std::mutex Single_T<T>::_mutex;
-
 //继承实现方式
 //智能指针无法托管私有构造函数的类（继承类的问题），故自制RAII
 template<typename T>
@@ -100,7 +63,7 @@ template<typename T>
 T* Single<T>::_pInstance = nullptr;
 
 template<typename T>
-Single<T>::AutoRelease Single<T>::_autoRelease;
+typename Single<T>::AutoRelease Single<T>::_autoRelease;
 
 template<typename T>
 std::mutex Single<T>::_mutex;

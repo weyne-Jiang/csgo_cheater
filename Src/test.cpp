@@ -137,7 +137,7 @@ int main(int args,char **arges)
 
 	//auto p = son::getinstance();
 	//son::destory();
-	auto haha = Cheater::getInstence();
+	auto haha = Cheater::getInstence(123);
 
 	
 	return 0;

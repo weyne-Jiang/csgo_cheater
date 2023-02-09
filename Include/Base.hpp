@@ -47,5 +47,44 @@ namespace BaseFunc
 
 namespace BaseData
 {
-	
+    struct Point3D {
+        float x;
+        float y;
+        float z;
+        // 坐标点与float数组的互相转换
+        Point3D(float p[3]) {
+            x = p[0];
+            y = p[1];
+            z = p[2];
+        }
+        float* GetPoint3DFloat{
+            float haha[3] = {x, y, z};
+            return ()float[3] {x, y, z};
+        }
+        // 距离
+        const float Distance(Point3D& p1, Point3D& p2) {
+            return sqrtf((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) + (p1.z - p2.z) * (p1.z - p2.z));
+        }
+        // 重载加法 
+        const Point3D operator + (const Point3D& r) {
+            return Point3D(x + r.x, y + r.y, z + r.z);
+        }
+        // 重载减法
+        const Point3D operator - (const Point3D& r) {
+            return Point3D(x - r.x, y - r.y, z - r.z);
+        }
+        // 重载乘法 
+        const Point3D operator * (const Point3D& r) {
+            return Point3D(x * r.x, y * r.y, z * r.z);
+        }
+        // 重载除法
+        const Point3D operator / (const Point3D& r) {
+            return Point3D(x / r.x, y / r.y, z / r.z);
+        }
+        //重载输出运算符
+        friend std::ostream& operator << (std::ostream& os, const Point3D& p) {
+            os << '(' << p.x << ',' << p.y << ',' << p.z << ')';
+            return os;
+        }
+    };
 }
