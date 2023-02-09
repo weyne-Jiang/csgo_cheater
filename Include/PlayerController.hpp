@@ -26,6 +26,7 @@ typedef struct player
 
 class PlayerController
 {
+
 public:
 	// 获取玩家控制对象指针
 	static PlayerController* getInstence();

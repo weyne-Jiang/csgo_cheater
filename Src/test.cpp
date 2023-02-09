@@ -118,27 +118,32 @@ private:A() {}
 
 int main(int args,char **arges)
 {
-	//PlayerController* ptr1 = PlayerController::getInstence();
+	PlayerController* ptr1 = PlayerController::getInstence();
 
-	//ptr1->updatePlayer();
-	//ptr1->updateAngle();
-	//ptr1->updateMatrix();
-	//ptr1->showMatrix();
+	ptr1->updatePlayer();
+	ptr1->updateAngle();
+	ptr1->updateMatrix();
+	ptr1->showMatrix();
 	//// 
-	//MessageBox(NULL, "开始工作", "提示！", 0);
-	////HWND curHwnd = FindWindowA("Direct3DWindowClass", "ShadowVolume");
-	//HWND curHwnd = FindWindowA("Valve001", "Counter-Strike: Global Offensive - Direct3D 9");
-	//creatTransWin(curHwnd);
-	//initD3d();
-	//setDrawFunc(drawTest);
-	//messageLoop();
+	MessageBox(NULL, "开始工作", "提示！", 0);
+	//HWND curHwnd = FindWindowA("Direct3DWindowClass", "ShadowVolume");
+	HWND curHwnd = FindWindowA("Valve001", "Counter-Strike: Global Offensive - Direct3D 9");
+	creatTransWin(curHwnd);
+	initD3d();
+	setDrawFunc(drawTest);
+	messageLoop();
 	
 	//auto haha = Cheater::getInstence();
 
 	//auto p = son::getinstance();
 	//son::destory();
-	auto haha = Cheater::getInstence(123);
-
-	
+	//auto haha = Cheater::getInstence();
+	//BaseData::Point3D point3d(3.4, 34.5, 232.45);
+	//cout << point3d << endl;
+	//printf("0x%8x \n", &point3d);
+	//printf("%d \n", sizeof(point3d));
+	//printf("0x%8X \n", &point3d.x);
+	//printf("0x%8X \n", &point3d.y);
+	//printf("0x%08x \n", &point3d.z);
 	return 0;
 }

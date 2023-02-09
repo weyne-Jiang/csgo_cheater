@@ -124,6 +124,7 @@ void ModuleInfo::moduleInit(HANDLE handle, DWORD processId, string moduleName)
 			_moduleHandle = moduleInfo.hModule;
 
 			//申请模块内存空间
+			//这里需要删除，实际并没用用到
 			_alloc(moduleInfo.modBaseSize);
 			DWORD readSize = BaseFunc::readMemory(handle, _pModuleAddr, _pModuleData, _moduleSize);
 			BaseFunc::errorCheck(readSize, "读取内存失败");

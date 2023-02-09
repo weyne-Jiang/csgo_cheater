@@ -49,7 +49,7 @@ bool PlayerController::initAddr()
 errorType PlayerController::updatePlayer()
 {
 
-	//读取人数
+	// 读取人数
 	// 建立键值表
 	// 读取单个玩家基址
 	// 读取具体信息
@@ -101,6 +101,11 @@ errorType PlayerController::updateAngle()
 {
 	SIZE_T readSize = BaseFunc::readMemory(_pProcess->getProcessHandle(), (LPCVOID)((int)_angleAddr + setting::offset::engine::b_angleY), &_aimAngle, sizeof(float) * 2);
 
+	BaseData::Point2D point2d;
+	auto p =  BaseFunc::readMemory<BaseData::Point2D>(_pProcess->getProcessHandle(), (LPCVOID)((int)_angleAddr + setting::offset::engine::b_angleY), 2);
+	cout << "******************\n";
+	printf("屏幕坐标 : %.4f  %.4f\n", p->x, p->y);
+	cout << "******************\n";
 	if (0 == readSize)
 		return angleErr;
 
