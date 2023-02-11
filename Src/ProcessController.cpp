@@ -1,22 +1,10 @@
 #include "ProcessController.hpp"
 
-ProcessController* ProcessController::_pInstance = nullptr;
-ProcessController::AutoRelease ProcessController::_autoRelease;
-
-ProcessController* ProcessController::getInstence()
-{
-	if (nullptr == _pInstance)
-	{
-		_pInstance = new ProcessController();
-	}
-	return _pInstance;
-}
-
 ProcessController::ProcessController()
 {
 	//初始化
+	_processName = setting::processName;
 	_processId = getProcessId(setting::processName);
-	//_processId = 56696;
 	_processHandle = getProcessHandle(_processId, PROCESS_ALL_ACCESS);
 }
 
@@ -40,8 +28,10 @@ shared_ptr<ModuleInfo> ProcessController::getModule(string moduleName)
 	if (_moduleMap.find(moduleName) != _moduleMap.end())
 		return _moduleMap[moduleName];
 	else
+	{
 		printf("%s 模块未加载", moduleName.c_str());
 		return nullptr;
+	}
 }
 
 //通过进程名获取进程ID
@@ -49,7 +39,7 @@ DWORD ProcessController::getProcessId(string processName)
 {
 	//创建快照
 	HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-	BaseFunc::errorCheck(snap != INVALID_HANDLE_VALUE, "CreateToolhelp32Snapshot失败");
+	BaseFunc::errorCheck("CreateToolhelp32Snapshot失败", snap != INVALID_HANDLE_VALUE);
 
 	PROCESSENTRY32 processInfo;
 	ZeroMemory(&processInfo, sizeof(processInfo));
@@ -61,12 +51,6 @@ DWORD ProcessController::getProcessId(string processName)
 	{
 		if (processName == string((char*)processInfo.szExeFile))
 		{
-#ifdef _DEBUG
-			printf("进程名称 : %s \n", processInfo.szExeFile);
-			printf("进程ID : %d \n", processInfo.th32ProcessID);
-			printf("\n");
-#endif // DEBUG
-
 			CloseHandle(snap);
 			return processInfo.th32ProcessID;
 		}
@@ -82,13 +66,8 @@ DWORD ProcessController::getProcessId(string processName)
 HANDLE ProcessController::getProcessHandle(DWORD processId, DWORD access)
 {
 	HANDLE processHandle = OpenProcess(access, FALSE, processId);
-	BaseFunc::errorCheck(processHandle, "打开进程句柄失败");
+	BaseFunc::errorCheck("打开进程句柄失败", processHandle);
 
-#ifdef _DEBUG
-	printf("进程ID : %d \n", processId);
-	printf("进程句柄 : 0x%08x \n", processHandle);
-	printf("\n");
-#endif // DEBUG
 	return processHandle;
 }
 
@@ -102,11 +81,27 @@ DWORD ProcessController::getProcessId()
 	return _processId;
 }
 
+void ProcessController::printProcess()
+{
+	printf("进程名称 : %s \n", _processName.c_str());
+	printf("进程ID : %d \n", _processId);
+	printf("进程句柄 : 0x%08x \n", _processHandle);
+	printf("\n");
+}
+
+void ProcessController::printModule()
+{
+	for (auto &module: _moduleMap)
+	{
+		module.second->print();
+	}
+}
+
 void ModuleInfo::moduleInit(HANDLE handle, DWORD processId, string moduleName)
 {
 	//创建快照
 	HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, processId);
-	BaseFunc::errorCheck(snap != INVALID_HANDLE_VALUE, "CreateToolhelp32Snapshot失败");
+	BaseFunc::errorCheck("CreateToolhelp32Snapshot失败", snap != INVALID_HANDLE_VALUE);
 
 	MODULEENTRY32 moduleInfo;
 	ZeroMemory(&moduleInfo, sizeof(moduleInfo));
@@ -125,17 +120,10 @@ void ModuleInfo::moduleInit(HANDLE handle, DWORD processId, string moduleName)
 
 			//申请模块内存空间
 			//这里需要删除，实际并没用用到
-			_alloc(moduleInfo.modBaseSize);
-			DWORD readSize = BaseFunc::readMemory(handle, _pModuleAddr, _pModuleData, _moduleSize);
-			BaseFunc::errorCheck(readSize, "读取内存失败");
+			//_alloc(moduleInfo.modBaseSize);
+			//DWORD readSize = BaseFunc::readMemory(handle, _pModuleAddr, _pModuleData, _moduleSize);
+			//BaseFunc::errorCheck("读取内存失败", readSize);
 
-#ifdef _DEBUG
-			printf("模块名称 : %s \n", _moduleName.c_str());
-			printf("模块基址 : 0x%8X \n", _pModuleAddr);
-			printf("模块大小 : %d MB\n", _moduleSize / 1024 / 1024);
-			printf("实际读取 : %d MB\n", readSize / 1024 / 1024);
-			printf("\n");
-#endif // DEBUG
 			CloseHandle(snap);
 			return;
 		}
@@ -165,7 +153,10 @@ inline void ModuleInfo::_alloc(size_t size)
 
 inline void ModuleInfo::_release()
 {
-	BaseFunc::freeMemory(_pModuleData);
+	if (_pModuleData != nullptr)
+	{
+		BaseFunc::freeMemory(_pModuleData);
+	}
 }
 
 BYTE* ModuleInfo::getModuleAddr() noexcept
@@ -174,4 +165,12 @@ BYTE* ModuleInfo::getModuleAddr() noexcept
 		return _pModuleAddr;
 	else
 		return nullptr;
+}
+
+void ModuleInfo::print()
+{
+	printf("模块名称 : %s \n", _moduleName.c_str());
+	printf("模块基址 : 0x%8X \n", _pModuleAddr);
+	printf("模块大小 : %d MB\n", _moduleSize / 1024 / 1024);
+	printf("\n");
 }

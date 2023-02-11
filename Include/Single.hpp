@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __SINGLE_HPP__
 #define __SINGLE_HPP__
 
@@ -39,14 +38,8 @@ protected:
 		}
 	};
 
-	Single()
-	{
-		cout << "Single()\n";
-	}
-	virtual ~Single()
-	{
-		cout << "~Single()\n";
-	}
+	Single() = default;
+	virtual ~Single() = default;
 	Single(const Single&) = delete;
 	Single& operator=(const Single&) = delete;
 	Single(const Single&&) = delete;

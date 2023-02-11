@@ -28,9 +28,6 @@ using std::make_pair;
 using std::move;
 using std::function;
 
-enum infoType { moduleHandle, moduleName, moduleAddr, moduleData, moduleSize };
-enum errorType {successDone = 1, roomCountErr, playerInfoErr, angleErr, matrixErr, successWrite, writeErr, otherErr};
-
 namespace setting
 {
 	const string processName = "csgo.exe";

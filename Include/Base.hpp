@@ -1,11 +1,15 @@
 #pragma once
 
 #include "head.hpp"
+#include "Single.hpp"
+
+enum class infoType { moduleHandle, moduleName, moduleAddr, moduleData, moduleSize };
+enum class errorType { successDone = 1, readErr, writeErr, otherErr };
 
 namespace BaseFunc
 {
 	//错误判断
-	void errorCheck(bool state, const char* content = nullptr);
+	void errorCheck(const char* content, bool state = false);
 
 	//警告信息
 	void warningInfo(const char* content, bool state = false);
@@ -95,9 +99,28 @@ namespace BaseData
         Point3D operator + (const Point3D& r) {
             return Point3D(x + r.x, y + r.y, z + r.z);
         }
+
         // 重载减法
         Point3D operator - (const Point3D& r) {
             return Point3D(x - r.x, y - r.y, z - r.z);
+        }
+
+        // 重载下标
+        float & operator [] (const int& index) {
+            if (index < 0 && index > 2)
+                BaseFunc::errorCheck("下标访问越界");
+
+            switch (index)
+            {
+            case 0:
+                return x;
+            case 1:
+                return y;
+            case 2:
+                return z;
+            default:
+                break;
+            }
         }
 
         //重载输出运算符
@@ -155,6 +178,22 @@ namespace BaseData
         // 重载减法
         Point2D operator - (const Point2D& r) {
             return Point2D(x - r.x, y - r.y);
+        }
+
+        // 重载下标
+        float& operator [] (const int& index) {
+            if (index < 0 && index > 1)
+                BaseFunc::errorCheck("下标访问越界");
+
+            switch (index)
+            {
+            case 0:
+                return x;
+            case 1:
+                return y;
+            default:
+                break;
+            }
         }
 
         //重载输出运算符

@@ -1,15 +1,30 @@
 #pragma once
 #include "PlayerController.hpp"
 #include "DrawHelper.hpp"
-#include "Single.hpp"
+
+#define KEY_DOWN(VK_NONAME) ((GetAsyncKeyState(VK_NONAME) & 0x8000) ? 1:0) 
 
 using namespace DrawHelper;
 
 class Cheater : public Single<Cheater>
 {
+	using Point2D = BaseData::Point2D;
+	using Point3D = BaseData::Point3D;
     friend class Single<Cheater>;
 public:
-	
+	// 获取左键状态
+	bool getMouseL();
+
+	// 计算距离
+	float distance(Point3D& point);
+
+	// 计算自瞄角度
+	Point2D calcuAngle(Point3D& self, Point3D& target);
+
+	// 自瞄循环
+	void aimBot();
+
+	// 
 
 private:
 	Cheater();
@@ -19,30 +34,6 @@ private:
 	PlayerController* _pPlayerController;
 
 };
-
-Cheater::Cheater()
-{
-	cout << "Cheater()\n";
-}
-
-Cheater::~Cheater()
-{
-	cout << "~Cheater()\n";
-}
-
-//class Cheater : public Single<Cheater>
-//{
-//	friend class Single<Cheater>;
-//public:
-//	Cheater(int haha)
-//	{
-//		printf("Cheater(int %d)\n", haha);
-//	}
-//
-//private:
-//	Cheater() = default;
-//	~Cheater() = default;
-//};
 
 
 

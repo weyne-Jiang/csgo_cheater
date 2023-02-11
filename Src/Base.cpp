@@ -2,8 +2,7 @@
 
 namespace BaseFunc
 {
-
-	void errorCheck(bool state, const char* content)
+	void errorCheck(const char* content, bool state)
 	{
 		if (state)
 			return;
@@ -57,7 +56,7 @@ namespace BaseFunc
 	LPVOID allocMemory(SIZE_T size)
 	{
 		LPVOID res = VirtualAlloc(nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-		errorCheck(res, "远程内存申请");
+		errorCheck("远程内存申请", res);
 		return res;
 	}
 
