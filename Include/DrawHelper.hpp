@@ -1,37 +1,24 @@
 #pragma once
-#include "head.hpp"
+#include "Base.hpp"
 #include "d3d9.h"
 #include "d3dx9.h"
 #include "dwmapi.h"
 #include <process.h>
 
-namespace DrawHelper
+using Point2D = BaseData::Point2D;
+using Point3D = BaseData::Point3D;
+using drawFunction = function<void()>;
+
+class DrawHelper : public Single<DrawHelper>
 {
-	using drawFunction = function<void()>;
-
-	struct DrawData
-	{
-		string test = "nihao";
-	};
-
-	static MARGINS g_margin; //绘图区域
-	static LPDIRECT3D9 g_pD3d = NULL; //D3D对象指针
-	static LPDIRECT3DDEVICE9 g_pD3dDevice = NULL;  //D3D驱动对象指针
-	static D3DPRESENT_PARAMETERS g_d3dpp = {};
-	static ID3DXLine* g_pLine = nullptr; //线段对象指针
-	static ID3DXFont* g_font = nullptr; //文字对象指针
-
-	static WNDCLASSEX g_wClass;	//注册窗口类
-	static HWND g_drawHand; //绘制句柄
-	static HWND g_gameHwnd; //游戏句柄
-	static RECT g_windowRect; //窗口边界位置
-	static int g_windowW; //窗口宽
-	static int g_windowH; //窗口高
-
-	static drawFunction g_drawFunc;
+	friend class Single<DrawHelper>;
+public:
 
 	//创建透明窗口
 	void creatTransWin(HWND gameHand);
+
+	//创建透明窗口
+	void creatTransWin(string className, string windowsName);
 
 	//设置绘制函数
 	void setDrawFunc(drawFunction drawFunc);
@@ -40,13 +27,16 @@ namespace DrawHelper
 	bool initD3d();
 
 	//消息处理函数
-	LRESULT WinProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam);
+	static LRESULT WinProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam);
 
 	//清理资源
 	void cleanD3d();
 
 	//消息循环
 	void messageLoop();
+
+	//同步透明窗口到游戏窗口
+	void moveWin();
 
 	//开始绘制
 	void startDraw();
@@ -55,7 +45,7 @@ namespace DrawHelper
 	void endDraw();
 
 	//绘制线段
-	void drawLine(float* point1, float* point2, float width, D3DCOLOR Color);
+	void drawLine(Point2D& point1, Point2D& point2, float width, D3DCOLOR Color);
 
 	//绘制文字
 	void drawFront(long x, long y, const char* Str, D3DCOLOR Color);
@@ -64,5 +54,36 @@ namespace DrawHelper
 	void drawRect(float X, float Y, float W, float H, float Width, D3DCOLOR Color);
 
 	//绘制填充矩形
-	void DrawBox(LPDIRECT3DDEVICE9 pDevice, int x, int y, int w, int h, D3DCOLOR Color);
-}
+	void DrawBox(int x, int y, int w, int h, D3DCOLOR Color);
+
+	//获取绘制区域
+	MARGINS getMargin();
+
+	//获取D3D驱动对象指针
+	LPDIRECT3DDEVICE9 getD3dDevice();
+
+	//获取绘制函数
+	drawFunction getDrawFunc();
+
+private:
+	DrawHelper();
+	~DrawHelper();
+
+private:
+	MARGINS _margin; //绘图区域
+	LPDIRECT3D9 _pD3d = NULL; //D3D对象指针
+	LPDIRECT3DDEVICE9 _pD3dDevice = NULL;  //D3D驱动对象指针
+	D3DPRESENT_PARAMETERS _d3dpp = {};
+	ID3DXLine* _pLine = nullptr; //线段对象指针
+	ID3DXFont* _font = nullptr; //文字对象指针
+
+	WNDCLASSEX _wClass;	//注册窗口类
+	HWND _drawHand; //绘制句柄
+	HWND _gameHwnd; //游戏句柄
+	RECT _windowRect; //窗口边界位置
+	int _windowW; //窗口宽
+	int _windowH; //窗口高
+
+	drawFunction _drawFunc = nullptr; //绘制执行函数
+};
+

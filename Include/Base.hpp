@@ -41,12 +41,6 @@ namespace BaseFunc
 
 	//释放远程进程内存
 	void freeMemory(LPVOID pAddr);
-
-	//通过进程名获取进程ID
-	DWORD getProcessId(string processName);
-
-	//通过进程ID获取进程句柄
-	HANDLE getProcessHandle(DWORD processId, DWORD access = PROCESS_ALL_ACCESS);
 }
 
 namespace BaseData

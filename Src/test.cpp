@@ -3,7 +3,9 @@
 #include "PlayerController.hpp"
 #include "DrawHelper.hpp"
 #include "Cheater.hpp"
-using namespace DrawHelper;
+#include <chrono>
+using namespace std::chrono;
+//using namespace DrawHelper;
 //获取自瞄角度
 void get_aimbot_angle(float* self_location, float* player_location, float* aim_angle, bool squat, float recoil)
 {
@@ -25,12 +27,13 @@ void get_aimbot_angle(float* self_location, float* player_location, float* aim_a
 
 void drawTest()
 {
-	startDraw();
-	float point1[2] = { 200, 300 };
-	float point2[2] = { 1, 70 };
-	drawLine(point1, point2, 5, D3DCOLOR_XRGB(122, 255, 0));
+	auto p = DrawHelper::getInstence();
+	p->startDraw();
+	Point2D point1(200,300);
+	Point2D point2(1, 70);
+	p->drawLine(point1, point2, 5, D3DCOLOR_XRGB(122, 255, 0));
 	//drawRect(23, 45, 155, 300,567, D3DCOLOR_XRGB(122, 255, 0));
-	endDraw();
+	p->endDraw();
 }
 
 int main(int args,char **arges)
@@ -61,13 +64,28 @@ int main(int args,char **arges)
 	//initD3d();
 	//setDrawFunc(drawTest);
 	//messageLoop();
-
+	int i = 0;
 	auto p = Cheater::getInstence();
-	while (true)
+	auto start = system_clock::now();
+	while (1000)
 	{
+		++i;
+		cout << "*********" << "this is " << i << "*************\n";
 		p->aimBot();
 	}
-
-
+	auto end = system_clock::now();
+	auto cost = duration_cast<milliseconds>(end - start);
+	cout << "用时 ： " << double(cost.count()) << "毫秒" << endl;
+	system("pause");
+	//auto p1 = DrawHelper::getInstence();
+	////HWND curHwnd = FindWindowA("Valve001", "Counter-Strike: Global Offensive - Direct3D 9");
+	//p1->creatTransWin("Valve001", "Counter-Strike: Global Offensive - Direct3D 9");
+	//p1->initD3d();
+	//while (1)
+	//{
+	//	drawTest();
+	//}
+	//p1->setDrawFunc(drawTest);
+	//p1->messageLoop();
 	return 0;
 }

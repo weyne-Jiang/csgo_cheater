@@ -56,7 +56,8 @@ errorType PlayerController::readPlayer()
 		if (0 == readSize)
 			return errorType::readErr;
 	}
-	return errorType::readErr;
+
+	return errorType::successDone;
 }
 
 errorType PlayerController::readAngle()
