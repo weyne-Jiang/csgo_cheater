@@ -106,39 +106,39 @@ bool to_rect_info(float matrix[][4], float* location, int window_width, int wind
 	return true;
 }
 
-//绘制玩家方框
-void render_player_box(player_list* players)
-{
-	int window_x, window_y, window_w, window_h;
-	get_window_size(g_game_hwnd, window_x, window_y, window_w, window_h);
-	window_w /= 2;
-	window_h /= 2;
-
-	float matrix[4][4];
-	read_memory(g_process_handle, g_matrix_address, matrix, sizeof(float) * 4 * 4);
-
-	float self_location[3];
-	get_self_location(self_location);
-
-	int self_camp = get_self_camp(players);
-
-	for (int i = 0; i < g_players_count; i++)
-	{
-		int x, y, w, h;
-		if (players[i].effective && players[i].self == false && to_rect_info(matrix, players[i].location, window_w, window_h, x, y, w, h))
-		{
-			D3DCOLOR color = D3DCOLOR_XRGB(255, 255, 0);
-			if (self_camp != players[i].camp)
-			{
-				color = D3DCOLOR_XRGB(255, 0, 0);
-				players[i].aimbot_len = get_aimbot_len(window_w, window_h, x + (w / 2), y + (h / 2));
-			}
-			render_rect(color, x, y, w, h);
-			render_player_blood(players[i].blood, x - 5, y, h);
-			render_underline(color, window_w, window_h, x + (w / 2), y + h);
-		}
-	}
-}
+////绘制玩家方框
+//void render_player_box(player_list* players)
+//{
+//	int window_x, window_y, window_w, window_h;
+//	get_window_size(g_game_hwnd, window_x, window_y, window_w, window_h);
+//	window_w /= 2;
+//	window_h /= 2;
+//
+//	float matrix[4][4];
+//	read_memory(g_process_handle, g_matrix_address, matrix, sizeof(float) * 4 * 4);
+//
+//	float self_location[3];
+//	get_self_location(self_location);
+//
+//	int self_camp = get_self_camp(players);
+//
+//	for (int i = 0; i < g_players_count; i++)
+//	{
+//		int x, y, w, h;
+//		if (players[i].effective && players[i].self == false && to_rect_info(matrix, players[i].location, window_w, window_h, x, y, w, h))
+//		{
+//			D3DCOLOR color = D3DCOLOR_XRGB(255, 255, 0);
+//			if (self_camp != players[i].camp)
+//			{
+//				color = D3DCOLOR_XRGB(255, 0, 0);
+//				players[i].aimbot_len = get_aimbot_len(window_w, window_h, x + (w / 2), y + (h / 2));
+//			}
+//			render_rect(color, x, y, w, h);
+//			render_player_blood(players[i].blood, x - 5, y, h);
+//			render_underline(color, window_w, window_h, x + (w / 2), y + h);
+//		}
+//	}
+//}
 
 // 自瞄循环
 void Cheater::aimBot()

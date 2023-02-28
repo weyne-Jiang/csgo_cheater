@@ -36,6 +36,40 @@ void drawTest()
 	p->endDraw();
 }
 
+//RAII+静态指针变量形式
+class MyClass1 : public Single<MyClass1>
+{
+	//父类需为子类友元，以便能够调用子类私有构造、析构函数
+	friend class Single<MyClass1>;
+public:
+	void test()
+	{
+		printf("this is test function\n");
+	}
+
+private:
+	MyClass1() = default;
+	MyClass1(int a) { printf("MyClass1(int a), a = %d\n", a); };
+	~MyClass1() = default;
+};
+
+//静态内部变量形式
+class MyClass2 : public Singleton<MyClass2>
+{
+	friend class Singleton<MyClass2>;
+public:
+	void test()
+	{
+		printf("this is test function\n");
+	}
+
+private:
+	MyClass2() = default;
+	MyClass2(int a) { printf("MyClass2(int a), a = %d\n", a); };
+	~MyClass2() = default;
+};
+
+
 int main(int args,char **arges)
 {
 	////加载模块
@@ -64,6 +98,7 @@ int main(int args,char **arges)
 	//initD3d();
 	//setDrawFunc(drawTest);
 	//messageLoop();
+	/*
 	int i = 0;
 	auto p = Cheater::getInstence();
 	auto start = system_clock::now();
@@ -77,6 +112,8 @@ int main(int args,char **arges)
 	auto cost = duration_cast<milliseconds>(end - start);
 	cout << "用时 ： " << double(cost.count()) << "毫秒" << endl;
 	system("pause");
+	*/
+
 	//auto p1 = DrawHelper::getInstence();
 	////HWND curHwnd = FindWindowA("Valve001", "Counter-Strike: Global Offensive - Direct3D 9");
 	//p1->creatTransWin("Valve001", "Counter-Strike: Global Offensive - Direct3D 9");
@@ -87,5 +124,10 @@ int main(int args,char **arges)
 	//}
 	//p1->setDrawFunc(drawTest);
 	//p1->messageLoop();
+	MyClass1* cls1 = MyClass1::getInstence(3);
+	MyClass2& cls2 = MyClass2::getInstence(4);
+
+	cls1->test();
+	cls2.test();
 	return 0;
 }

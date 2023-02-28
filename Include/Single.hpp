@@ -45,7 +45,6 @@ protected:
 	Single(const Single&&) = delete;
 	Single& operator=(const Single&&) = delete;
 
-
 private:
 	static T* _pInstance;
 	static AutoRelease _autoRelease;
@@ -65,22 +64,20 @@ std::mutex Single<T>::_mutex;
 template<typename T>
 class Singleton {
 public:
-	static T& getInstence() noexcept(std::is_nothrow_constructible<T>::value) {
-		static T instance;
-		return instance;
+	template<typename... Args>
+	static T& getInstence(Args&&... args) noexcept(std::is_nothrow_constructible<T>::value) {
+		static T _pInstance(std::forward<Args>(args)...);
+		return _pInstance;
 	}
 
-	Singleton(const Singleton&) = delete;
-	Singleton& operator =(const Singleton&) = delete;
-	//Singleton(const Singleton&&) = delete;
-	//Singleton& operetor=(const Singleton&& cls) = delete;
 protected:
 
 	Singleton() = default;
 	virtual ~Singleton() noexcept = default;
-	static shared_ptr<T> _test;
+	Singleton(const Singleton&) = delete;
+	Singleton& operator =(const Singleton&) = delete;
+	Singleton(const Singleton&&) = delete;
+	Singleton& operator =(const Singleton&&) = delete;
 };
 
-template<typename T>
-shared_ptr<T> Singleton<T>::_test = nullptr;
 #endif // !__SINGLE_HPP__
