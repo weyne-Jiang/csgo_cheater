@@ -15,7 +15,7 @@ public:
 	float distance(Point3D& point);
 
 	// 计算自瞄角度
-	Point2D worldToScreen(Point3D& self, Point3D& target);
+	Point2D calcuAngle(Point3D& self, Point3D& target);
 
 	// 自瞄循环
 	void aimBot();

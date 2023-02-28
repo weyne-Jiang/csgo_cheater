@@ -42,7 +42,7 @@ float Cheater::distance(Point3D& target)
 }
 
 // 计算自瞄角度
-Point2D Cheater::worldToScreen(Point3D& self, Point3D& target)
+Point2D Cheater::calcuAngle(Point3D& self, Point3D& target)
 {
 	float x = self.x - target[0];
 	float y = self.y - target[1];
@@ -68,6 +68,76 @@ Point2D Cheater::worldToScreen(Point3D& self, Point3D& target)
 bool Cheater::getMouseL()
 {
 	return KEY_DOWN(VK_LBUTTON);
+}
+
+//转化为矩阵信息
+bool to_rect_info(float matrix[][4], float* location, int window_width, int window_heigt, int& x, int& y, int& w, int& h)
+{
+	float to_target = matrix[2][0] * location[0]
+		+ matrix[2][1] * location[1]
+		+ matrix[2][2] * location[2]
+		+ matrix[2][3];
+	if (to_target < 0.01f)
+	{
+		x = y = w = h = 0;
+		return false;
+	}
+	to_target = 1.0f / to_target;
+
+	float to_width = window_width + (matrix[0][0] * location[0]
+		+ matrix[0][1] * location[1]
+		+ matrix[0][2] * location[2]
+		+ matrix[0][3]) * to_target * window_width;
+
+	float to_height_h = window_heigt - (matrix[1][0] * location[0]
+		+ matrix[1][1] * location[1]
+		+ matrix[1][2] * (location[2] + 75.0f)
+		+ matrix[1][3]) * to_target * window_heigt;
+
+	float to_height_w = window_heigt - (matrix[1][0] * location[0]
+		+ matrix[1][1] * location[1]
+		+ matrix[1][2] * (location[2] - 5.0f)
+		+ matrix[1][3]) * to_target * window_heigt;
+
+	x = (int)(to_width - (to_height_w - to_height_h) / 4.0f);
+	y = (int)(to_height_h);
+	w = (int)((to_height_w - to_height_h) / 2.0f);
+	h = (int)(to_height_w - to_height_h);
+	return true;
+}
+
+//绘制玩家方框
+void render_player_box(player_list* players)
+{
+	int window_x, window_y, window_w, window_h;
+	get_window_size(g_game_hwnd, window_x, window_y, window_w, window_h);
+	window_w /= 2;
+	window_h /= 2;
+
+	float matrix[4][4];
+	read_memory(g_process_handle, g_matrix_address, matrix, sizeof(float) * 4 * 4);
+
+	float self_location[3];
+	get_self_location(self_location);
+
+	int self_camp = get_self_camp(players);
+
+	for (int i = 0; i < g_players_count; i++)
+	{
+		int x, y, w, h;
+		if (players[i].effective && players[i].self == false && to_rect_info(matrix, players[i].location, window_w, window_h, x, y, w, h))
+		{
+			D3DCOLOR color = D3DCOLOR_XRGB(255, 255, 0);
+			if (self_camp != players[i].camp)
+			{
+				color = D3DCOLOR_XRGB(255, 0, 0);
+				players[i].aimbot_len = get_aimbot_len(window_w, window_h, x + (w / 2), y + (h / 2));
+			}
+			render_rect(color, x, y, w, h);
+			render_player_blood(players[i].blood, x - 5, y, h);
+			render_underline(color, window_w, window_h, x + (w / 2), y + h);
+		}
+	}
 }
 
 // 自瞄循环
@@ -106,14 +176,14 @@ void Cheater::aimBot()
 		//绘制
 		//_pDrawHelper->setDrawFunc(drawTest);
 		//_pDrawHelper->messageLoop();
-		//_pDrawHelper->moveWin();
-		////需要屏幕角度转换为屏幕坐标
-		//Point2D point = worldToScreen(self->_location, player.second->_location);
-		////printf("绘制玩家 ：%s, 坐标 ：", player.first.c_str());
-		////cout << point << endl;
-		//_pDrawHelper->startDraw();
+		_pDrawHelper->moveWin();
+		//需要屏幕角度转换为屏幕坐标
+		//Point2D point = calcuAngle(self->_location, player.second->_location);
+		//printf("绘制玩家 ：%s, 坐标 ：", player.first.c_str());
+		//cout << point << endl;
+		_pDrawHelper->startDraw();
 		//_pDrawHelper->drawRect(point.x* (float)10, point.y*(float)6, 10, 10, 1, D3DCOLOR_XRGB(122, 255, 0));
-		//_pDrawHelper->endDraw();
+		_pDrawHelper->endDraw();
 
 		//计算距离选择最近敌人
 		float dist = distance(player.second->_location);
@@ -127,7 +197,7 @@ void Cheater::aimBot()
 	//计算自瞄角度
 	if (target.length() > 0)
 	{
-		Point2D aimAngle = worldToScreen(self->_location, playerMap[target]->_location);
+		Point2D aimAngle = calcuAngle(self->_location, playerMap[target]->_location);
 
 		//cout << "瞄准角度 ： " << aimAngle << endl;
 		//printf("瞄准玩家 ：%s\n", target.c_str());
