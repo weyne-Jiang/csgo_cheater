@@ -53,22 +53,6 @@ private:
 	~MyClass1() = default;
 };
 
-//静态内部变量形式
-class MyClass2 : public Singleton<MyClass2>
-{
-	friend class Singleton<MyClass2>;
-public:
-	void test()
-	{
-		printf("this is test function\n");
-	}
-
-private:
-	MyClass2() = default;
-	MyClass2(int a) { printf("MyClass2(int a), a = %d\n", a); };
-	~MyClass2() = default;
-};
-
 
 int main(int args,char **arges)
 {
@@ -125,9 +109,7 @@ int main(int args,char **arges)
 	//p1->setDrawFunc(drawTest);
 	//p1->messageLoop();
 	MyClass1* cls1 = MyClass1::getInstence(3);
-	MyClass2& cls2 = MyClass2::getInstence(4);
 
 	cls1->test();
-	cls2.test();
 	return 0;
 }

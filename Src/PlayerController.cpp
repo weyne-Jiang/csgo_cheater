@@ -120,7 +120,7 @@ shared_ptr<player> PlayerController::getPlayer(string name)
 	if (_playerMap.find(name) != _playerMap.end())
 		return _playerMap[name];
 	else
-		printf("未找到玩家 %s 信息", name);
+		printf("未找到玩家 %s 信息", name.c_str());
 	return make_shared<player>();
 }
 
@@ -150,7 +150,7 @@ void PlayerController::printPlayer(string playName)
 	printf("玩家名称 : %s \n", playName.c_str());
 	printf("玩家地址 : 0x%8X \n", _playerMap[playName]->_curAddr);
 	printf("玩家阵营 : %d \n", _playerMap[playName]->_camp);
-	printf("玩家血量 : %lu \n", _playerMap[playName]->_blood);
+	printf("玩家血量 : %llu \n", _playerMap[playName]->_blood);
 	printf("玩家坐标 : %.4f  %.4f  %.4f \n", _playerMap[playName]->_location[0], _playerMap[playName]->_location[1], _playerMap[playName]->_location[2]);
 	cout << endl;
 }
@@ -162,7 +162,7 @@ void PlayerController::printPlayer()
 		printf("玩家名称 : %s \n", player.first.c_str());
 		printf("玩家地址 : 0x%8X \n", player.second->_curAddr);
 		printf("玩家阵营 : %d \n", player.second->_camp);
-		printf("玩家血量 : %lu \n", player.second->_blood);
+		printf("玩家血量 : %llu \n", player.second->_blood);
 		printf("玩家坐标 : %.4f  %.4f  %.4f \n", player.second->_location[0], player.second->_location[1], player.second->_location[2]);
 		cout << endl;
 	}

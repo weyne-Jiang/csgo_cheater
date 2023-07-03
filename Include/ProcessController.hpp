@@ -8,6 +8,7 @@ public:
 
 	ModuleInfo(HANDLE handle, DWORD processId, string moduleName);
 	~ModuleInfo();
+
 	// 模块加载初始化
 	void moduleInit(HANDLE handle, DWORD processId, string moduleName);
 

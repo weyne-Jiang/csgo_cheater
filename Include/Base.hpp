@@ -6,6 +6,14 @@
 enum class infoType { moduleHandle, moduleName, moduleAddr, moduleData, moduleSize };
 enum class errorType { successDone = 1, readErr, writeErr, otherErr };
 
+#ifdef _DEBUG
+#define MACRO_TRACE(format, ...) \
+	printf("File: \"%s\", Function: %s, Line: %d -> ", __FILE__, __FUNCTION__, __LINE__);\
+	printf(format, ##__VA_ARGS__)
+#else
+#define MACRO_TRACE(format, ...)
+#endif // _DEBUG
+
 namespace BaseFunc
 {
 	//错误判断
@@ -45,73 +53,96 @@ namespace BaseFunc
 
 namespace BaseData
 {
-    struct Point3D {
-        float x;
-        float y;
-        float z;
-
+    class Point3D {
+    public:
         Point3D()
         {
-            x = 0;
-            y = 0;
-            z = 0;
+            _pPoint = new float [3]();
+            _pPoint[0] = 0;
+            _pPoint[1] = 0;
+            _pPoint[2] = 0;
         }
     
-        Point3D(float p[3]) 
+        explicit Point3D(const float p[3])
         {
-            x = p[0];
-            y = p[1];
-            z = p[2];
+            _pPoint = new float [3]();
+            _pPoint[0] = p[0];
+            _pPoint[1] = p[1];
+            _pPoint[2] = p[2];
         }
 
-        Point3D(float x, float y, float z) 
+        Point3D(const float& x, const float& y, const float& z)
         {
-            this->x = x;
-            this->y = y;
-            this->z = z;
+            _pPoint = new float [3]();
+            _pPoint[0] = x;
+            _pPoint[1] = y;
+            _pPoint[2] = z;
         }
 
-        float* toFloat()
+        ~Point3D()
         {
-            //auto p = (float[3]){x, y, z};
-            float res[3] = { x,y,z };
-            return res;
+            delete [] _pPoint;
+        }
+
+        [[nodiscard]]
+        float& x() const
+        {
+            return _pPoint[0];
+        }
+
+        [[nodiscard]]
+        float& y() const
+        {
+            return _pPoint[1];
+        }
+
+        [[nodiscard]]
+        float& z() const
+        {
+            return _pPoint[2];
+        }
+
+        float const * floatArray()
+        {
+            return _pPoint;
         }
 
         //计算与某一点的距离
-        float distance(Point3D& point)
+        float distance(Point3D& point) const
         {
-            return sqrtf((point.x - x) * (point.x - x) + (point.y - y) * (point.y - y) + (point.z - z) * (point.z - z));
+            return sqrtf((point.x() - this->x()) * (point.x() - this->x()) + (point.y() - this->y()) * (point.y() - this->y()) + (point.z() - this->z()) * (point.z() - this->z()));
         }
 
         // 计算两点距离
         static float distance(Point3D& p1, Point3D& p2) {
-            return sqrtf((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) + (p1.z - p2.z) * (p1.z - p2.z));
+            return sqrtf((p1.x()-p2.x())*(p1.x()-p2.x()) + (p1.y()-p2.y())*(p1.y()-p2.y()) + (p1.z()-p2.z())*(p1.z()-p2.z()));
         }
 
         // 重载加法 
-        Point3D operator + (const Point3D& r) {
-            return Point3D(x + r.x, y + r.y, z + r.z);
+        Point3D operator + (const Point3D& cls) const
+        {
+            return {this->x() + cls.x(), this->y() + cls.y(), this->z() + cls.z()};
         }
 
         // 重载减法
-        Point3D operator - (const Point3D& r) {
-            return Point3D(x - r.x, y - r.y, z - r.z);
+        Point3D operator - (const Point3D& cls) const
+        {
+            return {this->x() - cls.x(), this->y() - cls.y(), this->z() - cls.z()};
         }
 
         // 重载下标
         float & operator [] (const int& index) {
-            if (index < 0 && index > 2)
+            if (index < 0 || index > 2)
                 BaseFunc::errorCheck("下标访问越界");
 
             switch (index)
             {
             case 0:
-                return x;
+                return _pPoint[0];
             case 1:
-                return y;
+                return _pPoint[1];
             case 2:
-                return z;
+                return _pPoint[2];
             default:
                 break;
             }
@@ -119,81 +150,107 @@ namespace BaseData
 
         //重载输出运算符
         friend std::ostream& operator << (std::ostream& os, const Point3D& p) {
-            os << '(' << p.x << ',' << p.y << ',' << p.z << ')';
+            os << '(' << p.x() << ',' << p.y() << ',' << p.z() << ')';
             return os;
         }
+
+    private:
+        float *_pPoint;
     };
 
-    struct Point2D
+    class Point2D
     {
-        float x;
-        float y;
-
+    public:
         Point2D()
         {
-            x = 0;
-            y = 0;
+            _pPoint = new float [2]();
+            _pPoint[0] = 0;
+            _pPoint[1] = 0;
         }
 
-        Point2D(float p[2])
+        explicit Point2D(const float p[2])
         {
-            x = p[0];
-            y = p[1];
+            _pPoint = new float [2]();
+            _pPoint[0] = p[0];
+            _pPoint[1] = p[1];
         }
 
-        Point2D(float x, float y)
+        Point2D(const float& x, const float& y)
         {
-            this->x = x;
-            this->y = y;
+            _pPoint = new float [2]();
+            _pPoint[0] = x;
+            _pPoint[1] = y;
         }
 
-        float* toFloat()
+        ~Point2D()
         {
-            //auto p = (float[3]){x, y, z};
-            float res[2] = { x,y};
-            return res;
+            delete [] _pPoint;
+        }
+
+        float const * floatArray()
+        {
+            return _pPoint;
+        }
+
+        [[nodiscard]]
+        float& x() const
+        {
+            return _pPoint[0];
+        }
+
+        [[nodiscard]]
+        float& y() const
+        {
+            return _pPoint[1];
         }
 
         //计算与某一点的距离
-        float distance(Point2D& point)
+        float distance(Point2D& point) const
         {
-            return sqrtf((point.x - x) * (point.x - x) + (point.y - y) * (point.y - y));
+            return sqrtf((point.x() - this->x()) * (point.x() - this->x()) + (point.y() - this->y()) * (point.y() - this->y()));
         }
 
         // 计算两点距离
-        static float distance(Point2D& p1, Point2D& p2) {
-            return sqrtf((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y));
+        static float distance(Point2D& p1, Point2D& p2)
+        {
+            return sqrtf((p1.x()-p2.x())*(p1.x()-p2.x()) + (p1.y()-p2.y())*(p1.y()-p2.y()));
         }
 
-        // 重载加法 
-        Point2D operator + (const Point2D& r) {
-            return Point2D(x + r.x, y + r.y);
+        // 重载加法
+        Point2D operator + (const Point2D& cls) const
+        {
+            return {this->x() + cls.x(), this->y() + cls.y()};
         }
+
         // 重载减法
-        Point2D operator - (const Point2D& r) {
-            return Point2D(x - r.x, y - r.y);
+        Point2D operator - (const Point2D& cls) const
+        {
+            return {this->x() - cls.x(), this->y() - cls.y()};
         }
 
         // 重载下标
-        float& operator [] (const int& index) {
-            if (index < 0 && index > 1)
+        float & operator [] (const int& index) {
+            if (index < 0 || index > 1)
                 BaseFunc::errorCheck("下标访问越界");
 
             switch (index)
             {
-            case 0:
-                return x;
-            case 1:
-                return y;
-            default:
-                break;
+                case 0:
+                    return _pPoint[0];
+                case 1:
+                    return _pPoint[1];
+                default:
+                    break;
             }
         }
 
         //重载输出运算符
         friend std::ostream& operator << (std::ostream& os, const Point2D& p) {
-            os << '(' << p.x << ',' << p.y << ')';
+            os << '(' << p.x() << ',' << p.y() << ')';
             return os;
         }
+
+    private:
+        float *_pPoint;
     };
 }

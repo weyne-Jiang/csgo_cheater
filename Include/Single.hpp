@@ -60,24 +60,4 @@ typename Single<T>::AutoRelease Single<T>::_autoRelease;
 template<typename T>
 std::mutex Single<T>::_mutex;
 
-//静态变量实现方式
-template<typename T>
-class Singleton {
-public:
-	template<typename... Args>
-	static T& getInstence(Args&&... args) noexcept(std::is_nothrow_constructible<T>::value) {
-		static T _pInstance(std::forward<Args>(args)...);
-		return _pInstance;
-	}
-
-protected:
-
-	Singleton() = default;
-	virtual ~Singleton() noexcept = default;
-	Singleton(const Singleton&) = delete;
-	Singleton& operator =(const Singleton&) = delete;
-	Singleton(const Singleton&&) = delete;
-	Singleton& operator =(const Singleton&&) = delete;
-};
-
 #endif // !__SINGLE_HPP__

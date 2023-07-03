@@ -44,14 +44,14 @@ float Cheater::distance(Point3D& target)
 // ¼ÆËã×ÔÃé½Ç¶È
 Point2D Cheater::calcuAngle(Point3D& self, Point3D& target)
 {
-	float x = self.x - target[0];
-	float y = self.y - target[1];
-	float z = self.z - target[2] + 45.0f;
+	float x = self.x() - target[0];
+	float y = self.y() - target[1];
+	float z = self.z() - target[2] + 45.0f;
 
 	Point2D aimAngle;
 	const float pi = 3.1415f;
-	aimAngle.x = (float)atan(z / sqrt(x * x + y * y)) / pi * 180.f;
-	aimAngle.y = (float)atan(y / x);
+	aimAngle.x() = (float)atan(z / sqrt(x * x + y * y)) / pi * 180.f;
+	aimAngle.y() = (float)atan(y / x);
 
 	if (x >= 0.0f && y >= 0.0f) 
 		aimAngle[1] = aimAngle[1] / pi * 180.0f - 180.0f;

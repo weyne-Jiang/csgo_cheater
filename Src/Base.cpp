@@ -11,7 +11,7 @@ namespace BaseFunc
 		MessageBox(nullptr, (LPCSTR)errorInfo.c_str(), (LPCSTR)"错误信息", MB_OK);
 		//预留日志记录
 #ifdef _DEBUG
-		cout << errorInfo << endl;
+        MACRO_TRACE("%s", errorInfo.c_str());
 #endif // DEBUG
 		exit(-1);
 	}
@@ -25,7 +25,7 @@ namespace BaseFunc
 		MessageBox(nullptr, (LPCSTR)warnInfo.c_str(), (LPCSTR)"警告信息", MB_OK);
 		//预留日志记录
 #ifdef _DEBUG
-		cout << warnInfo << endl;
+        MACRO_TRACE("%s", warnInfo.c_str());
 #endif // DEBUG
 
 	}
