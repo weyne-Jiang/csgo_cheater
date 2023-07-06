@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <memory>
 #include <functional>
+#include <optional>
 using std::string;
 using std::wstring;
 using std::map;
@@ -26,6 +27,8 @@ using std::make_shared;
 using std::make_pair;
 using std::move;
 using std::function;
+using std::optional;
+using std::nullopt;
 
 namespace setting
 {

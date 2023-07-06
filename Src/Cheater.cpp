@@ -7,7 +7,7 @@ Cheater::Cheater()
 	try
 	{
 		//¼ÓÔØÄ£¿é
-		auto _pProcess = ProcessController::getInstence();
+		auto _pProcess = Process::getInstence();
 		_pProcess->loadModule("client.dll");
 		_pProcess->loadModule("server.dll");
 		_pProcess->loadModule("engine.dll");

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ProcessController.hpp"
+#include "ProcessHelper.hpp"
 #include "Base.hpp"
 
 using Point2D = BaseData::Point2D;
@@ -84,7 +84,7 @@ private:
 	~PlayerController();
 
 private:
-	ProcessController* _pProcess; // 进程控制对象指针
+	Process* _pProcess; // 进程控制对象指针
 
 	LPVOID _matrixAddr; //矩阵基址
 	LPVOID _angleAddr; //屏幕角度基址

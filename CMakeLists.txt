@@ -28,7 +28,7 @@ link_directories(${PROJECT_SOURCE_DIR}/Lib/DirectX_SDK/x64)
 
 #生成应用程序
 add_executable(csgo_cheater ${src_list})
-
+add_executable(test Src/test.cpp)
 #添加链接库
 target_link_libraries(csgo_cheater d3d9.lib d3dx9.lib d3dx9d.lib dwmapi.lib)
 

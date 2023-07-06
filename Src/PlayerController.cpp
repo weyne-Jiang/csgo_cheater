@@ -2,7 +2,7 @@
 
 PlayerController::PlayerController() : _matrixAddr(nullptr), _angleAddr(nullptr), _playerAddr(nullptr), _aimAngle(), _selfMatrix()
 {
-	_pProcess = ProcessController::getInstence();
+	_pProcess = Process::getInstence();
 	initAddr();
 }
 

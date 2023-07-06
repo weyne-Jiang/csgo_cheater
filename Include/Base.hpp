@@ -1,12 +1,14 @@
 #pragma once
-
 #include "head.hpp"
 #include "Single.hpp"
 
-enum class infoType { moduleHandle, moduleName, moduleAddr, moduleData, moduleSize };
-enum class errorType { successDone = 1, readErr, writeErr, otherErr };
+enum class infoType { moduleHandle, moduleName, moduleAddr, moduleData, moduleSize};
+enum class errorType { successDone = 1, readErr, writeErr, otherErr};
 
 #ifdef _DEBUG
+/*!
+ * @brief 错误追踪
+ */
 #define MACRO_TRACE(format, ...) \
 	printf("File: \"%s\", Function: %s, Line: %d -> ", __FILE__, __FUNCTION__, __LINE__);\
 	printf(format, ##__VA_ARGS__)
@@ -16,39 +18,116 @@ enum class errorType { successDone = 1, readErr, writeErr, otherErr };
 
 namespace BaseFunc
 {
-	//错误判断
-	void errorCheck(const char* content, bool state = false);
+    /*!
+     * @brief 错误判断
+     * @param content 错误内容
+     */
+	void errorInfo(const std::string& content);
 
-	//警告信息
-	void warningInfo(const char* content, bool state = false);
+    /*!
+     * @brief 警告判断
+     * @param content 警告内容
+     */
+	void warningInfo(const std::string& content);
 
-	//读远程进程内存
+    /*!
+     * @brief 读远程进程内存
+     * @param handle 进程句柄
+     * @param addr 进程内起始地址
+     * @param pBuff 读取内存缓存
+     * @param size 预定读取尺寸
+     * @return 实际读取尺寸
+     */
 	SIZE_T readMemory(HANDLE handle, LPCVOID addr, LPVOID pBuff, SIZE_T size);
 
-	//写远程进程内存
+    /*!
+     * @brief 写远程进程内存
+     * @param handle 进程句柄
+     * @param addr 进程内起始地址
+     * @param pBuff 写入内存缓存
+     * @param size 预定写入尺寸
+     * @return 实际写入尺寸
+     */
 	SIZE_T writeMemory(HANDLE handle, LPVOID addr, LPVOID pBuff, SIZE_T size);
 
-	//读远程进程内存
+	/*!
+	 * @brief 读取进程内存
+	 * @tparam T 单位数据-类型
+	 * @param handle 进程句柄
+	 * @param addr 进程内存起始地址
+	 * @param count 读取单位数量
+	 * @return 数据指针
+	 */
 	template<typename T>
+	[[nodiscard]]
 	shared_ptr<T> readMemory(HANDLE handle, LPCVOID addr, SIZE_T count)
 	{
-		shared_ptr<T> pRes(new T[count]());
-		readMemory(handle, addr, (LPVOID)pRes.get(), count * sizeof(T));
-		return pRes;
+        auto pRes = new T[count]();
+//		shared_ptr<T> pRes(new T[count]());
+		readMemory(handle, addr, (LPVOID)pRes, count * sizeof(T));
+		return std::make_shared<T>(pRes);
 	}
 
-	//写远程进程内存
+	/*!
+	 * @brief 写入进程内存
+	 * @tparam T 单位数据-类型
+	 * @param handle 进程句柄
+	 * @param addr 进程内存起始地址
+	 * @param pBuff 数据缓存
+	 * @param count 读取单位数量
+	 * @return 实际读取字节数
+	 */
 	template<typename T>
 	SIZE_T writeMemory(HANDLE handle, LPVOID addr, LPVOID pBuff, SIZE_T count)
 	{
 		return writeMemory(handle, addr, pBuff, count * sizeof(T));
 	}
 
-	//申请远程进程内存
-	LPVOID allocMemory(SIZE_T size);
+    /*!
+     * @brief 申请本进程内存
+     * @param size 申请字节数
+     * @param lpAddress 进程内虚拟内存地址
+     * @return 页面分配区域的基址
+     */
+    [[nodiscard]]
+	LPVOID allocMemory(SIZE_T size, LPVOID lpAddress = nullptr);
 
-	//释放远程进程内存
-	void freeMemory(LPVOID pAddr);
+    /*!
+     * @brief 申请远程进程内存
+     * @param hProcess 进程句柄
+     * @param size 申请字节数
+     * @param lpAddress 远程进程虚拟内存地址
+     * @return 页面分配区域的基址
+     */
+    [[nodiscard]]
+    LPVOID allocMemoryEx(HANDLE hProcess, SIZE_T size, LPVOID lpAddress = nullptr);
+
+    /*!
+     * @brief 释放本进程内存
+     * @param pAddr 指向要释放的页面区域的基址的指针
+     */
+    void freeMemory(LPVOID pAddr);
+
+    /*!
+     * @brief 释放远程进程内存
+     * @param hProcess 进程句柄
+     * @param pAddr 指向要释放的页面区域的基址的指针
+     */
+    void freeMemory(HANDLE hProcess, LPVOID pAddr);
+
+    /*!
+     * @brief 打印函数
+     * @tparam Types 不用管
+     * @param args 不用管
+     */
+    template <typename ... Types>
+    void print (const Types&... args)
+    {
+#ifdef _DEBUG
+        std::initializer_list <int> { ([&args] {std::cout << args;}(), 0)...};
+        std::cout << std::endl;
+#endif
+    }
 }
 
 namespace BaseData
@@ -133,7 +212,7 @@ namespace BaseData
         // 重载下标
         float & operator [] (const int& index) {
             if (index < 0 || index > 2)
-                BaseFunc::errorCheck("下标访问越界");
+                BaseFunc::errorInfo("下标访问越界");
 
             switch (index)
             {
@@ -231,7 +310,7 @@ namespace BaseData
         // 重载下标
         float & operator [] (const int& index) {
             if (index < 0 || index > 1)
-                BaseFunc::errorCheck("下标访问越界");
+                BaseFunc::errorInfo("下标访问越界");
 
             switch (index)
             {
