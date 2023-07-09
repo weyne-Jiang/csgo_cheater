@@ -1,5 +1,30 @@
 #include "DrawHelper.hpp"
 
+MARGINS DrawHelper::_margin{}; //绘图区域
+LPDIRECT3D9 DrawHelper::_pD3d = nullptr; //D3D对象指针
+LPDIRECT3DDEVICE9 DrawHelper::_pD3dDevice = nullptr;  //D3D驱动对象指针
+D3DPRESENT_PARAMETERS DrawHelper::_d3dPara{}; // 设备参数
+ID3DXLine* DrawHelper:: _pLine = nullptr; //线段对象指针
+ID3DXFont* DrawHelper:: _font = nullptr; //文字对象指针
+WNDCLASSEX DrawHelper::_wClass{};	//注册窗口类
+HWND DrawHelper::_drawHand = nullptr; //透明窗口绘制句柄
+HWND DrawHelper::_winHwnd = nullptr; //游戏窗口句柄
+RECT DrawHelper::_windowRect{}; //窗口边界位置
+int DrawHelper::_windowW = 0; //窗口宽
+int DrawHelper::_windowH = 0; //窗口高
+drawFunction DrawHelper::_drawFunc = nullptr; //绘制执行函数
+std::thread DrawHelper::_listenThread = thread(); //消息监听线程
+void drawTest()
+{
+    auto p = DrawHelper::getInstence();
+    p->startDraw();
+    Point2D point1(250,250);
+    Point2D point2(0, 0);
+    p->drawLine(point1, point2, 5, D3DCOLOR_XRGB(122, 255, 0));
+    //drawRect(23, 45, 155, 300,567, D3DCOLOR_XRGB(122, 255, 0));
+    p->endDraw();
+}
+
 DrawHelper::DrawHelper()
 {
 
@@ -7,115 +32,112 @@ DrawHelper::DrawHelper()
 
 DrawHelper::~DrawHelper()
 {
+    _listenThread.join();
+    //销毁消息
 }
 
-//创建透明窗口
-void DrawHelper::creatTransWin(HWND gameHand)
+bool DrawHelper::createWindows(HWND winHand)
 {
-	_gameHwnd = gameHand;
+    _winHwnd = winHand;
 
 	//初始化窗口类
 	_wClass.cbClsExtra = NULL;
 	_wClass.cbSize = sizeof(WNDCLASSEX);
 	_wClass.cbWndExtra = NULL;
 	_wClass.hbrBackground = (HBRUSH)CreateSolidBrush(RGB(0, 0, 0));
-	_wClass.hCursor = LoadCursor(0, IDC_ARROW);
-	_wClass.hIcon = LoadIcon(0, IDI_APPLICATION);
-	_wClass.hIconSm = LoadIcon(0, IDI_APPLICATION);
-	_wClass.hInstance = GetModuleHandle(NULL);
+	_wClass.hCursor = LoadCursor(nullptr, IDC_ARROW);
+	_wClass.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
+	_wClass.hIconSm = LoadIcon(nullptr, IDI_APPLICATION);
+	_wClass.hInstance = GetModuleHandle(nullptr);
 	_wClass.lpfnWndProc = (WNDPROC)WinProc;
-	_wClass.lpszClassName = " ";
-	_wClass.lpszMenuName = " ";
+	_wClass.lpszClassName = "lpszClassName";
+	_wClass.lpszMenuName = "lpszMenuName";
 	_wClass.style = CS_VREDRAW | CS_HREDRAW;
 
 	//注册窗口
-	if (RegisterClassEx(&_wClass) == 0)
+	if (!RegisterClassEx(&_wClass))
 	{
-		MessageBox(NULL, "创建窗口出错！", "提示！", 0);
-		exit(1);
+        warningInfo("注册窗口失败");
+		return false;
 	}
 
 	//创建窗口
-	GetWindowRect(_gameHwnd, &_windowRect);
+    if (!GetWindowRect(_winHwnd, &_windowRect))
+    {
+        warningInfo("获取窗口尺寸失败");
+        return false;
+    }
+	GetWindowRect(_winHwnd, &_windowRect);
 	_windowW = _windowRect.right - _windowRect.left;
 	_windowH = _windowRect.bottom - _windowRect.top;
-	_drawHand = CreateWindowEx(WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_LAYERED, " ", " ", WS_POPUP, 1, 1, _windowW, _windowH, 0, 0, 0, 0);
+	_drawHand = CreateWindowEx(WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_LAYERED, "lpszClassName", "lpszMenuName", WS_POPUP, 1, 1, _windowW, _windowH, nullptr, nullptr, nullptr, nullptr);
 
 	//显示窗口
 	SetLayeredWindowAttributes(_drawHand, 0, RGB(0, 0, 0), LWA_COLORKEY);
-	ShowWindow(_drawHand, SW_SHOW);
+    ShowWindow(_drawHand, SW_SHOW);
+//    if (!ShowWindow(_drawHand, SW_SHOW))
+//    {
+//        warningInfo("显示窗口失败");
+//        return false;
+//    }
+    return true;
 }
 
 //创建透明窗口
-void DrawHelper::creatTransWin(string className, string windowsName)
+bool DrawHelper::createWindows(const string& className, const string& windowsName)
 {
-	HWND curHwnd = FindWindowA(className.c_str(), windowsName.c_str());
-	_gameHwnd = curHwnd;
-
-	//初始化窗口类
-	_wClass.cbClsExtra = NULL;
-	_wClass.cbSize = sizeof(WNDCLASSEX);
-	_wClass.cbWndExtra = NULL;
-	_wClass.hbrBackground = (HBRUSH)CreateSolidBrush(RGB(0, 0, 0));
-	_wClass.hCursor = LoadCursor(0, IDC_ARROW);
-	_wClass.hIcon = LoadIcon(0, IDI_APPLICATION);
-	_wClass.hIconSm = LoadIcon(0, IDI_APPLICATION);
-	_wClass.hInstance = GetModuleHandle(NULL);
-	_wClass.lpfnWndProc = (WNDPROC)WinProc;
-	_wClass.lpszClassName = " ";
-	_wClass.lpszMenuName = " ";
-	_wClass.style = CS_VREDRAW | CS_HREDRAW;
-
-	//注册窗口
-	if (RegisterClassEx(&_wClass) == 0)
-	{
-		MessageBox(NULL, "创建窗口出错！", "提示！", 0);
-		exit(1);
-	}
-
-	//创建窗口
-	GetWindowRect(_gameHwnd, &_windowRect);
-	_windowW = _windowRect.right - _windowRect.left;
-	_windowH = _windowRect.bottom - _windowRect.top;
-	_drawHand = CreateWindowEx(WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_LAYERED, " ", " ", WS_POPUP, 1, 1, _windowW, _windowH, 0, 0, 0, 0);
-
-	//显示窗口
-	SetLayeredWindowAttributes(_drawHand, 0, RGB(0, 0, 0), LWA_COLORKEY);
-	ShowWindow(_drawHand, SW_SHOW);
+	HWND winHwnd = FindWindowA(className.c_str(), windowsName.c_str());
+    return createWindows(winHwnd);
 }
 
 //设置绘制函数
-void DrawHelper::setDrawFunc(drawFunction drawFunc)
+bool DrawHelper::registerDrawFunc(const drawFunction& drawFunc) noexcept
 {
-	_drawFunc = drawFunc;
+    if (!_drawFunc)
+    {
+        _drawFunc = drawFunc;
+        return true;
+    }
+    return false;
+}
+
+bool DrawHelper::unRegisterDrawFunc(const drawFunction& drawFunc) noexcept
+{
+    if (_drawFunc)
+    {
+        _drawFunc = nullptr;
+        return true;
+    }
+    return false;
 }
 
 //初始化D3D
 bool DrawHelper::initD3d()
 {
 	// 创建D3D对象
-	if ((_pD3d = Direct3DCreate9(D3D_SDK_VERSION)) == NULL)
+	if (!(_pD3d = Direct3DCreate9(D3D_SDK_VERSION)))
 		return false;
 
 	// 设置D3D参数
-	ZeroMemory(&_d3dpp, sizeof(_d3dpp));
-	_d3dpp.Windowed = TRUE;
-	_d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
-	_d3dpp.BackBufferFormat = D3DFMT_UNKNOWN;
-	_d3dpp.EnableAutoDepthStencil = TRUE;
-	_d3dpp.AutoDepthStencilFormat = D3DFMT_D16;
-	_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
+	ZeroMemory(&_d3dPara, sizeof(_d3dPara));
+    _d3dPara.Windowed = TRUE;
+    _d3dPara.SwapEffect = D3DSWAPEFFECT_DISCARD;
+    _d3dPara.BackBufferFormat = D3DFMT_UNKNOWN;
+    _d3dPara.EnableAutoDepthStencil = TRUE;
+    _d3dPara.AutoDepthStencilFormat = D3DFMT_D16;
+    _d3dPara.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
 
-	// 创建D39设备
-	if (_pD3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, _drawHand, D3DCREATE_HARDWARE_VERTEXPROCESSING, &_d3dpp, &_pD3dDevice) < 0)
+	// 创建D3D9设备
+	if (_pD3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, _drawHand, D3DCREATE_HARDWARE_VERTEXPROCESSING, &_d3dPara, &_pD3dDevice) != D3D_OK)
 		return false;
 
 	//创建线段
-	if (_pLine == NULL)
-		D3DXCreateLine(_pD3dDevice, &_pLine);
+    if (D3DXCreateLine(_pD3dDevice, &_pLine) != D3D_OK)
+        return false;
 
 	//创建D3D字体
-	D3DXCreateFontW(_pD3dDevice, 16, 0, FW_DONTCARE, D3DX_DEFAULT, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE, L"Vernada", &_font);
+    if (D3DXCreateFontW(_pD3dDevice, 16, 0, FW_DONTCARE, D3DX_DEFAULT, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE, L"Vernada", &_font) != S_OK)
+        return false;
 
 	return true;
 }
@@ -127,62 +149,136 @@ LRESULT DrawHelper::WinProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lPara
 	auto pDraw = DrawHelper::getInstence();
 	switch (Message)
 	{
-	case WM_PAINT:
-		if (pDraw->_pD3dDevice)
-			pDraw->_drawFunc();
-		break;
-
-	case WM_CREATE:
-		DwmExtendFrameIntoClientArea(hWnd, &pDraw->_margin);
-		break;
-
-	case WM_DESTROY:
-	{
-		pDraw->cleanD3d();
-		PostQuitMessage(0);
-		return 0;
-	}
-	case WM_CLOSE:
-		pDraw->cleanD3d();
-		PostQuitMessage(0);
-		return 0;
-	default:
-		return DefWindowProc(hWnd, Message, wParam, lParam);
-		break;
-	}
+        case WM_PAINT:
+        {
+            if (pDraw->_pD3dDevice)
+                pDraw->_drawFunc();
+            break;
+        }
+        case WM_CREATE:
+        {
+            if (DwmExtendFrameIntoClientArea(hWnd, &pDraw->_margin) != S_OK)
+                return -1;
+            break;
+        }
+        case WM_KEYDOWN:
+        {
+            cout << "WM_KEYDOWN : " << wParam << endl;
+            break;
+        }
+        case WM_CHAR:
+        {
+            cout << "WM_CHAR : " << wParam << endl;
+            break;
+        }
+        case WM_DESTROY:
+        {
+            pDraw->cleanD3d();
+            PostQuitMessage(0);
+            break;
+        }
+        case WM_CLOSE:
+            pDraw->cleanD3d();
+            PostQuitMessage(0);
+            break;
+        default:
+            return DefWindowProc(hWnd, Message, wParam, lParam);
+        }
 	return 0;
+}
+
+void DrawHelper::cleanD3d()
+{
+    if (_pLine)
+        _pLine->Release();
+    if (_font)
+        _font->Release();
+    if (_pD3d)
+        _pD3d->Release();
+    if (_pD3dDevice)
+        _pD3dDevice->Release();
+    _pLine = nullptr;
+    _font = nullptr;
+    _pD3d = nullptr;
+    _pD3dDevice = nullptr;
+
+    CloseWindow(_drawHand);
+    ::UnregisterClass(_wClass.lpszClassName, _wClass.hInstance);
+}
+
+void DrawHelper::listenMsg()
+{
+    _listenThread = thread([&](){
+        while (true)
+        {
+            moveWin();
+
+            //处理窗口消息
+            MSG Message;
+            ZeroMemory(&Message, sizeof(Message));
+
+            if (PeekMessage(&Message, nullptr, 0, 0, PM_REMOVE))
+            {
+                //将消息调度到窗口
+                DispatchMessage(&Message);
+                //虚拟按键消息转换为字符消息，加入消息队列，便于下次读取
+                TranslateMessage(&Message);
+            }
+            else
+            {
+                print("111\n");
+            }
+            Sleep(10);
+        }
+    });
 }
 
 //消息循环
 void DrawHelper::messageLoop()
 {
-	while (1)
+	while (true)
 	{
 		moveWin();
 
 		//处理窗口消息
 		MSG Message;
 		ZeroMemory(&Message, sizeof(Message));
-		if (PeekMessage(&Message, 0, 0, 0, PM_REMOVE))
+
+		if (PeekMessage(&Message, nullptr, 0, 0, PM_REMOVE))
 		{
+            //将消息调度到窗口
 			DispatchMessage(&Message);
+            //虚拟按键消息转换为字符消息，加入消息队列，便于下次读取
 			TranslateMessage(&Message);
 		}
 		Sleep(10);
 	}
+//    BOOL bRet;
+//    while( (bRet = GetMessage( &msg, hWnd, 0, 0 )) != 0)
+//    {
+//        if (bRet == -1)
+//        {
+//            // handle the error and possibly exit
+//        }
+//        else
+//        {
+//            TranslateMessage(&msg);
+//            DispatchMessage(&msg);
+//        }
+//    }
 }
 
 //同步透明窗口到游戏窗口
 void DrawHelper::moveWin()
 {
 	//固定覆盖游戏窗口
-	if (_gameHwnd)
+	if (_winHwnd)
 	{
-		GetWindowRect(_gameHwnd, &_windowRect);
+		GetWindowRect(_winHwnd, &_windowRect);
 		_windowW = _windowRect.right - _windowRect.left;
 		_windowH = _windowRect.bottom - _windowRect.top;
 		//printf("windowW : %d, windowH : %d\n", _windowW, _windowH);
-		DWORD dwStyle = GetWindowLong(_gameHwnd, GWL_STYLE);
+		DWORD dwStyle = GetWindowLong(_winHwnd, GWL_STYLE);
 		if (dwStyle & WS_BORDER)
 		{
 			_windowRect.left += 8;
@@ -194,30 +290,10 @@ void DrawHelper::moveWin()
 	}
 }
 
-//清理
-void DrawHelper::cleanD3d()
-{
-	if (_pLine)
-		_pLine->Release();
-	if (_font)
-		_font->Release();
-	if (_pD3d)
-		_pD3d->Release();
-	if (_pD3dDevice)
-		_pD3dDevice->Release();
-	_pLine = nullptr;
-	_font = nullptr;
-	_pD3d = nullptr;
-	_pD3dDevice = nullptr;
-
-	CloseWindow(_drawHand);
-	::UnregisterClass(_wClass.lpszClassName, _wClass.hInstance);
-}
-
 //开始绘制
 void DrawHelper::startDraw()
 {
-	_pD3dDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 1.0f, 0);
+	_pD3dDevice->Clear(0, nullptr, D3DCLEAR_TARGET, 0, 1.0f, 0);
 	_pD3dDevice->BeginScene();
 }
 
@@ -225,7 +301,7 @@ void DrawHelper::startDraw()
 void DrawHelper::endDraw()
 {
 	_pD3dDevice->EndScene();
-	_pD3dDevice->Present(0, 0, 0, 0);
+	_pD3dDevice->Present(nullptr, nullptr, nullptr, nullptr);
 }
 
 //绘制线段
@@ -241,8 +317,8 @@ void DrawHelper::drawLine(Point2D& point1, Point2D& point2, float width, D3DCOLO
 void DrawHelper::drawFront(long x, long y, const char* Str, D3DCOLOR Color)
 {
 	RECT Rect = { x, y };
-	_font->DrawTextA(NULL, Str, -1, &Rect, DT_CALCRECT, Color);
-	_font->DrawTextA(NULL, Str, -1, &Rect, DT_LEFT, Color);
+	_font->DrawTextA(nullptr, Str, -1, &Rect, DT_CALCRECT, Color);
+	_font->DrawTextA(nullptr, Str, -1, &Rect, DT_LEFT, Color);
 }
 
 //绘制矩形
@@ -272,7 +348,7 @@ void DrawHelper::DrawBox(int x, int y, int w, int h, D3DCOLOR Color)
 	V[1].y = V[3].y = (float)y;
 	V[2].x = V[3].x = (float)(x + w);
 
-	_pD3dDevice->SetTexture(0, NULL);
+	_pD3dDevice->SetTexture(0, nullptr);
 
 	// 设置缓冲区格式
 	_pD3dDevice->SetFVF(D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1);
@@ -281,20 +357,20 @@ void DrawHelper::DrawBox(int x, int y, int w, int h, D3DCOLOR Color)
 	_pD3dDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, V, sizeof(Vertex));
 }
 
-//获取绘制区域
-MARGINS DrawHelper::getMargin()
-{
-	return _margin;
-}
-
-//获取D3D驱动对象指针
-LPDIRECT3DDEVICE9 DrawHelper::getD3dDevice()
-{
-	return _pD3dDevice;
-}
-
-//获取绘制函数
-drawFunction DrawHelper::getDrawFunc()
-{
-	return _drawFunc;
-}
+////获取绘制区域
+//MARGINS DrawHelper::getMargin()
+//{
+//	return _margin;
+//}
+//
+////获取D3D驱动对象指针
+//LPDIRECT3DDEVICE9 DrawHelper::getD3dDevice()
+//{
+//	return _pD3dDevice;
+//}
+//
+////获取绘制函数
+//drawFunction DrawHelper::getDrawFunc()
+//{
+//	return _drawFunc;
+//}

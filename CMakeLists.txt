@@ -24,11 +24,10 @@ include_directories(${PROJECT_SOURCE_DIR}/Include/DirectX_SDK)
 include_directories(${PROJECT_SOURCE_DIR}/Include/)
 
 #自己的库文件目录
-link_directories(${PROJECT_SOURCE_DIR}/Lib/DirectX_SDK/x64)
+link_directories(${PROJECT_SOURCE_DIR}/Lib/DirectX_SDK/x86)
 
 #生成应用程序
 add_executable(csgo_cheater ${src_list})
-add_executable(test Src/test.cpp)
 #添加链接库
 target_link_libraries(csgo_cheater d3d9.lib d3dx9.lib d3dx9d.lib dwmapi.lib)
 

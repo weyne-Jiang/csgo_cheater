@@ -179,14 +179,19 @@ shared_ptr<Module> Process::getModule(const string& moduleName) noexcept
 	}
 }
 
-HANDLE Process::getProcessHandle() const noexcept
+HANDLE Process::processHandle() const noexcept
 {
 	return _processHandle;
 }
 
-DWORD Process::getProcessId() const noexcept
+DWORD Process::processId() const noexcept
 {
 	return _processId;
+}
+
+string Process::processName() const noexcept
+{
+    return _processName;
 }
 
 void Process::printProcess()
@@ -266,7 +271,7 @@ Module::~Module()
 	BaseFunc::print("module_died, i haven't thought of anything to do yet.");
 }
 
-BYTE* Module::getModuleAddr() const noexcept
+BYTE* Module::moduleAddr() const noexcept
 {
     return _pModuleAddr;
 }

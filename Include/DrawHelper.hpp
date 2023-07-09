@@ -5,38 +5,105 @@
 #include "dwmapi.h"
 #include <process.h>
 
-using Point2D = BaseData::Point2D;
-using Point3D = BaseData::Point3D;
+using namespace BaseData;
+using namespace BaseFunc;
 using drawFunction = function<void()>;
+
+void drawTest();
 
 class DrawHelper : public Single<DrawHelper>
 {
 	friend class Single<DrawHelper>;
 public:
 
-	//创建透明窗口
-	void creatTransWin(HWND gameHand);
+    /*!
+     * @brief 创建窗口
+     * @param winHand 窗口句柄
+     * @return 是否成功
+     */
+	bool createWindows(HWND winHand);
 
-	//创建透明窗口
-	void creatTransWin(string className, string windowsName);
+    /*!
+     * @brief 创建窗口
+     * @param className 窗口类名
+     * @param windowsName 窗口名
+     * @return 是否成功
+     */
+	bool createWindows(const string& className, const string& windowsName);
 
-	//设置绘制函数
-	void setDrawFunc(drawFunction drawFunc);
+    /*!
+     * @brief 注册绘制函数
+     * @param drawFunc 绘制函数
+     * @return 是否成功
+     */
+	bool registerDrawFunc(const drawFunction& drawFunc) noexcept;
 
-	//初始化D3D
+    /*!
+     * @brief 注销绘制函数
+     * @param drawFunc 绘制函数
+     * @return 是否成功
+     */
+    bool unRegisterDrawFunc(const drawFunction& drawFunc) noexcept;
+
+    /*!
+     * @brief 初始化D3D
+     * @return 是否成功
+     */
 	bool initD3d();
 
-	//消息处理函数
-	static LRESULT WinProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam);
+    /*!
+     * @brief 消息处理函数
+     * @param hWnd 当前窗口句柄
+     * @param Message 消息类型
+     * @param wParam 左参数
+     * @param lParam 右参数
+     * @return 结果
+     */
+	static LRESULT WINAPI WinProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam);
 
-	//清理资源
+    static DWORD WINAPI test(LPVOID lpThreadParameter)
+    {
+        HWND curHwnd = FindWindowA("Direct3DWindowClass", "ShadowVolume");
+//	HWND curHwnd = FindWindowA("Valve001", "Counter-Strike: Global Offensive - Direct3D 9");
+        auto p = DrawHelper::getInstence();
+        p->createWindows(curHwnd);
+        p->initD3d();
+        p->registerDrawFunc(drawTest);
+        MSG Message;
+        ZeroMemory(&Message, sizeof(Message));
+        while (GetMessage(&Message, nullptr, 0, 0))
+        {
+            moveWin();
+
+            //处理窗口消息
+//            if(GetMessage(&Message, nullptr, 0, 0))
+//            if (PeekMessage(&Message, nullptr, 0, 0, PM_REMOVE))
+//            {
+                //将消息调度到窗口
+                DispatchMessage(&Message);
+                //虚拟按键消息转换为字符消息，加入消息队列，便于下次读取
+                TranslateMessage(&Message);
+//            }
+//            Sleep(10);
+        }
+        return 0;
+    }
+
+    /*!
+     * @brief 清理资源
+     */
 	void cleanD3d();
 
 	//消息循环
 	void messageLoop();
 
+    /*!
+     * @brief 开始绘制
+     */
+    void listenMsg();
+
 	//同步透明窗口到游戏窗口
-	void moveWin();
+	static void moveWin();
 
 	//开始绘制
 	void startDraw();
@@ -56,34 +123,34 @@ public:
 	//绘制填充矩形
 	void DrawBox(int x, int y, int w, int h, D3DCOLOR Color);
 
-	//获取绘制区域
-	MARGINS getMargin();
-
-	//获取D3D驱动对象指针
-	LPDIRECT3DDEVICE9 getD3dDevice();
-
-	//获取绘制函数
-	drawFunction getDrawFunc();
+//	//获取绘制区域
+//	MARGINS getMargin();
+//
+//	//获取D3D驱动对象指针
+//	LPDIRECT3DDEVICE9 getD3dDevice();
+//
+//	//获取绘制函数
+//	drawFunction getDrawFunc();
 
 private:
 	DrawHelper();
-	~DrawHelper();
+	~DrawHelper() override;
 
 private:
-	MARGINS _margin; //绘图区域
-	LPDIRECT3D9 _pD3d = NULL; //D3D对象指针
-	LPDIRECT3DDEVICE9 _pD3dDevice = NULL;  //D3D驱动对象指针
-	D3DPRESENT_PARAMETERS _d3dpp = {};
-	ID3DXLine* _pLine = nullptr; //线段对象指针
-	ID3DXFont* _font = nullptr; //文字对象指针
+	static MARGINS _margin; //绘图区域
+	static LPDIRECT3D9 _pD3d; //D3D对象指针
+	static LPDIRECT3DDEVICE9 _pD3dDevice;  //D3D驱动对象指针
+	static D3DPRESENT_PARAMETERS _d3dPara; // 设备参数
+	static ID3DXLine* _pLine; //线段对象指针
+	static ID3DXFont* _font; //文字对象指针
 
-	WNDCLASSEX _wClass;	//注册窗口类
-	HWND _drawHand; //绘制句柄
-	HWND _gameHwnd; //游戏句柄
-	RECT _windowRect; //窗口边界位置
-	int _windowW; //窗口宽
-	int _windowH; //窗口高
+	static WNDCLASSEX _wClass;	//注册窗口类
+	static HWND _drawHand; //透明窗口绘制句柄
+	static HWND _winHwnd; //游戏窗口句柄
+	static RECT _windowRect; //窗口边界位置
+	static int _windowW; //窗口宽
+	static int _windowH; //窗口高
 
-	drawFunction _drawFunc = nullptr; //绘制执行函数
+	static drawFunction _drawFunc; //绘制执行函数
+    static std::thread _listenThread; //消息监听线程
 };
-

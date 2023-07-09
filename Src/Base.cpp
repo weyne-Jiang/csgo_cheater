@@ -25,7 +25,7 @@ namespace BaseFunc
 #endif
 	}
 
-	SIZE_T readMemory(HANDLE handle, LPCVOID addr, LPVOID pBuff, SIZE_T size)
+	uint64_t readMemory(HANDLE handle, LPCVOID addr, LPVOID pBuff, SIZE_T size)
 	{
 		SIZE_T readSize = 0;
 		if (!ReadProcessMemory(handle, addr, pBuff, size, &readSize))
@@ -33,13 +33,29 @@ namespace BaseFunc
 		return readSize;
 	}
 
-	SIZE_T writeMemory(HANDLE handle, LPVOID addr, LPVOID pBuff, SIZE_T size)
+    uint64_t readMemory(HANDLE handle, long addr, LPVOID pBuff, SIZE_T size)
+    {
+        SIZE_T readSize = 0;
+        if (!ReadProcessMemory(handle, (LPCVOID)addr, pBuff, size, &readSize))
+            warningInfo("读取进程内存失败");
+        return readSize;
+    }
+
+    uint64_t writeMemory(HANDLE handle, LPVOID addr, LPVOID pBuff, SIZE_T size)
 	{
 		SIZE_T writeSize = 0;
 		if (!WriteProcessMemory(handle, addr, pBuff, size, &writeSize))
 			warningInfo("写入进程内存失败");
 		return writeSize;
 	}
+
+    uint64_t writeMemory(HANDLE handle, long addr, LPVOID pBuff, SIZE_T size)
+    {
+        SIZE_T writeSize = 0;
+        if (!WriteProcessMemory(handle, (LPVOID)addr, pBuff, size, &writeSize))
+            warningInfo("写入进程内存失败");
+        return writeSize;
+    }
 
 	LPVOID allocMemory(SIZE_T size, LPVOID lpAddress)
 	{

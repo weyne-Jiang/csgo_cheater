@@ -24,6 +24,8 @@ public:
 		}
 		return _pInstance;
 	}
+    Single(const Single&) = delete;
+    Single& operator=(const Single&) = delete;
 
 protected:
 	//用于自动销毁 RAII
@@ -40,10 +42,8 @@ protected:
 
 	Single() = default;
 	virtual ~Single() = default;
-	Single(const Single&) = delete;
-	Single& operator=(const Single&) = delete;
-	Single(const Single&&) = delete;
-	Single& operator=(const Single&&) = delete;
+//	Single(const Single&&) = delete;
+//	Single& operator=(const Single&&) = delete;
 
 private:
 	static T* _pInstance;

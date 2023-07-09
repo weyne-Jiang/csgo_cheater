@@ -1,7 +1,7 @@
 #pragma once
-
 #include "Base.hpp"
 
+//region Module
 class Module
 {
 public:
@@ -34,7 +34,7 @@ public:
      * @return 模块地址
      */
     [[nodiscard]]
-	BYTE* getModuleAddr() const noexcept;
+	BYTE* moduleAddr() const noexcept;
 
 	// 展示指定信息
 	void showInfo() = delete;
@@ -51,7 +51,9 @@ private:
     DWORD _moduleSize;	// 模块尺寸
     string _modulePath; // 模块路径
 };
+//endregion Module
 
+//region Process
 class Process
 {
 public:
@@ -80,11 +82,15 @@ public:
 
 	// 获取进程句柄
     [[nodiscard]]
-	HANDLE getProcessHandle() const noexcept;
+	HANDLE processHandle() const noexcept;
 
 	// 获取进程ID
     [[nodiscard]]
-	DWORD getProcessId() const noexcept;
+	DWORD processId() const noexcept;
+
+    // 获取进程名
+    [[nodiscard]]
+    string processName() const noexcept;
 
 	// 获取模块对象指针
     [[nodiscard]]
@@ -111,7 +117,9 @@ private:
 	HANDLE _processHandle; // 进程句柄
 	DWORD _processId; // 进程ID
 };
+//endregion
 
+//region ProcessHelper
 class ProcessHelper : public Single<ProcessHelper>
 {
     friend class Single<ProcessHelper>;
@@ -176,5 +184,5 @@ public:
 private:
     map<string, shared_ptr<Process>> _processMap; // 进程键值表
 };
-
+//endregion
 

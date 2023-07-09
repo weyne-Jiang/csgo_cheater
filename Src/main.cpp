@@ -1,6 +1,6 @@
 #include "Base.hpp"
 #include "ProcessHelper.hpp"
-#include "PlayerController.hpp"
+#include "PlayerHelper.hpp"
 #include "DrawHelper.hpp"
 #include "Cheater.hpp"
 #include <chrono>
@@ -25,56 +25,16 @@ void get_aimbot_angle(float* self_location, float* player_location, float* aim_a
 	else if (x >= 0.0f && y < 0.0f) aim_angle[1] = aim_angle[1] / pi * 180.f + 180.0f;
 }
 
-void drawTest()
-{
-	auto p = DrawHelper::getInstence();
-	p->startDraw();
-	Point2D point1(200,300);
-	Point2D point2(1, 70);
-	p->drawLine(point1, point2, 5, D3DCOLOR_XRGB(122, 255, 0));
-	//drawRect(23, 45, 155, 300,567, D3DCOLOR_XRGB(122, 255, 0));
-	p->endDraw();
-}
-
-//RAII+静态指针变量形式
-class MyClass1 : public Single<MyClass1>
-{
-	//父类需为子类友元，以便能够调用子类私有构造、析构函数
-	friend class Single<MyClass1>;
-public:
-	void test()
-	{
-		printf("this is test function\n");
-	}
-
-private:
-	MyClass1() = default;
-	MyClass1(int a) { printf("MyClass1(int a), a = %d\n", a); };
-	~MyClass1() = default;
-};
-
-void const_test1(int i)
-{
-    i++;
-    BaseFunc::print("const_test1", i);
-}
-
-void const_test(const int& i)
-{
-    BaseFunc::print("const_test", i);
-    const int a= 1;
-    const_test1(a);
-}
-
-void throwerr()
-{
-    throw std::runtime_error("错误");
-}
-
-void nothing()
-{
-    throwerr();
-}
+//void drawTest()
+//{
+//	auto p = DrawHelper::getInstence();
+//	p->startDraw();
+//	Point2D point1(250,250);
+//	Point2D point2(0, 0);
+//	p->drawLine(point1, point2, 5, D3DCOLOR_XRGB(122, 255, 0));
+//	//drawRect(23, 45, 155, 300,567, D3DCOLOR_XRGB(122, 255, 0));
+//	p->endDraw();
+//}
 
 int main(int args,char **arges)
 {
@@ -86,10 +46,10 @@ int main(int args,char **arges)
 	//_pProcess->printProcess();
 	//_pProcess->printModule();
 
-	//PlayerController* ptr1 = PlayerController::getInstence();
-	//ptr1->readPlayer();
-	//ptr1->readAngle();
-	//ptr1->readMatrix();
+	//PlayerHelper* ptr1 = PlayerHelper::getInstence();
+	//ptr1->updatePlayer();
+	//ptr1->updateAngle();
+	//ptr1->updateMatrix();
 	//ptr1->printMatrix();
 	//ptr1->printPlayerCon();
 	//ptr1->printPlayer();
@@ -97,13 +57,19 @@ int main(int args,char **arges)
 	//ptr1->printMatrix();
 
 	//// 
-	//MessageBox(NULL, "开始工作", "提示！", 0);
-	////HWND curHwnd = FindWindowA("Direct3DWindowClass", "ShadowVolume");
-	//HWND curHwnd = FindWindowA("Valve001", "Counter-Strike: Global Offensive - Direct3D 9");
-	//creatTransWin(curHwnd);
-	//initD3d();
-	//setDrawFunc(drawTest);
-	//messageLoop();
+	MessageBox(NULL, "开始工作", "提示！", 0);
+//	HWND curHwnd = FindWindowA("Direct3DWindowClass", "ShadowVolume");
+////	HWND curHwnd = FindWindowA("Valve001", "Counter-Strike: Global Offensive - Direct3D 9");
+//    auto p = DrawHelper::getInstence();
+//    p->createWindows(curHwnd);
+//	p->initD3d();
+//    p->registerDrawFunc(drawTest);
+thread tt(&DrawHelper::test, DrawHelper::getInstence());
+//    CreateThread(NULL, 0, &DrawHelper::test, nullptr, 0, 0);
+//    p->messageLoop();
+//    p->listenMsg();
+//    thread tt(&DrawHelper::messageLoop, &(*p));
+    while(1){};
 	/*
 	int i = 0;
 	auto p = Cheater::getInstence();
@@ -122,7 +88,7 @@ int main(int args,char **arges)
 
 	//auto p1 = DrawHelper::getInstence();
 	////HWND curHwnd = FindWindowA("Valve001", "Counter-Strike: Global Offensive - Direct3D 9");
-	//p1->creatTransWin("Valve001", "Counter-Strike: Global Offensive - Direct3D 9");
+	//p1->createWindows("Valve001", "Counter-Strike: Global Offensive - Direct3D 9");
 	//p1->initD3d();
 	//while (1)
 	//{
@@ -133,17 +99,6 @@ int main(int args,char **arges)
 //	MyClass1* cls1 = MyClass1::getInstence(3);
 //
 //	cls1->test();
-    try
-    {
-        nothing();
-    }
-    catch (std::exception ex)
-    {
-        cout << ex.what() << endl;
-    }
-    catch (...)
-    {
-        cout << "sha\n";
-    }
+
 	return 0;
 }

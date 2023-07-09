@@ -2,9 +2,6 @@
 #include "head.hpp"
 #include "Single.hpp"
 
-enum class infoType { moduleHandle, moduleName, moduleAddr, moduleData, moduleSize};
-enum class errorType { successDone = 1, readErr, writeErr, otherErr};
-
 #ifdef _DEBUG
 /*!
  * @brief 错误追踪
@@ -38,7 +35,7 @@ namespace BaseFunc
      * @param size 预定读取尺寸
      * @return 实际读取尺寸
      */
-	SIZE_T readMemory(HANDLE handle, LPCVOID addr, LPVOID pBuff, SIZE_T size);
+	uint64_t readMemory(HANDLE handle, LPCVOID addr, LPVOID pBuff, SIZE_T size);
 
     /*!
      * @brief 写远程进程内存
@@ -48,7 +45,7 @@ namespace BaseFunc
      * @param size 预定写入尺寸
      * @return 实际写入尺寸
      */
-	SIZE_T writeMemory(HANDLE handle, LPVOID addr, LPVOID pBuff, SIZE_T size);
+	uint64_t writeMemory(HANDLE handle, LPVOID addr, LPVOID pBuff, SIZE_T size);
 
 	/*!
 	 * @brief 读取进程内存
@@ -78,10 +75,64 @@ namespace BaseFunc
 	 * @return 实际读取字节数
 	 */
 	template<typename T>
-	SIZE_T writeMemory(HANDLE handle, LPVOID addr, LPVOID pBuff, SIZE_T count)
+	uint64_t writeMemory(HANDLE handle, LPVOID addr, LPVOID pBuff, SIZE_T count)
 	{
 		return writeMemory(handle, addr, pBuff, count * sizeof(T));
 	}
+
+    /*!
+ * @brief 读远程进程内存
+ * @param handle 进程句柄
+ * @param addr 进程内起始地址
+ * @param pBuff 读取内存缓存
+ * @param size 预定读取尺寸
+ * @return 实际读取尺寸
+ */
+    uint64_t readMemory(HANDLE handle, long addr, LPVOID pBuff, SIZE_T size);
+
+    /*!
+     * @brief 写远程进程内存
+     * @param handle 进程句柄
+     * @param addr 进程内起始地址
+     * @param pBuff 写入内存缓存
+     * @param size 预定写入尺寸
+     * @return 实际写入尺寸
+     */
+    uint64_t writeMemory(HANDLE handle, long addr, LPVOID pBuff, SIZE_T size);
+
+    /*!
+     * @brief 读取进程内存
+     * @tparam T 单位数据-类型
+     * @param handle 进程句柄
+     * @param addr 进程内存起始地址
+     * @param count 读取单位数量
+     * @return 数据指针
+     */
+    template<typename T>
+    [[nodiscard]]
+    shared_ptr<T> readMemory(HANDLE handle, long addr, SIZE_T count)
+    {
+        auto pRes = new T[count]();
+//		shared_ptr<T> pRes(new T[count]());
+        readMemory(handle, addr, (LPVOID)pRes, count * sizeof(T));
+        return std::make_shared<T>(pRes);
+    }
+
+    /*!
+     * @brief 写入进程内存
+     * @tparam T 单位数据-类型
+     * @param handle 进程句柄
+     * @param addr 进程内存起始地址
+     * @param pBuff 数据缓存
+     * @param count 读取单位数量
+     * @return 实际读取字节数
+     */
+    template<typename T>
+    uint64_t writeMemory(HANDLE handle, long addr, LPVOID pBuff, SIZE_T count)
+    {
+        return writeMemory(handle, addr, pBuff, count * sizeof(T));
+    }
+
 
     /*!
      * @brief 申请本进程内存
@@ -181,7 +232,8 @@ namespace BaseData
             return _pPoint[2];
         }
 
-        float const * floatArray()
+        [[nodiscard]]
+        float * floatPoint() const
         {
             return _pPoint;
         }
@@ -266,7 +318,8 @@ namespace BaseData
             delete [] _pPoint;
         }
 
-        float const * floatArray()
+        [[nodiscard]]
+        float * floatPoint() const
         {
             return _pPoint;
         }

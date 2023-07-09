@@ -11,6 +11,7 @@
 #include <memory>
 #include <functional>
 #include <optional>
+#include <thread>
 using std::string;
 using std::wstring;
 using std::map;
@@ -29,10 +30,12 @@ using std::move;
 using std::function;
 using std::optional;
 using std::nullopt;
+using std::thread;
 
 namespace setting
 {
 	const string processName = "csgo.exe";
+    const vector<string> moduleGroup = {"client.dll", "server.dll", "engine.dll"};
 	constexpr int playerMaxCount = 32;
 
 	//分模块定义偏移，首字母代表指针层级
