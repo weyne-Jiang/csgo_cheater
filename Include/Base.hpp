@@ -174,10 +174,54 @@ namespace BaseFunc
     template <typename ... Types>
     void print (const Types&... args)
     {
-#ifdef _DEBUG
         std::initializer_list <int> { ([&args] {std::cout << args;}(), 0)...};
         std::cout << std::endl;
-#endif
+    }
+
+    /*!
+     * 生成均匀分布的随机数
+     * @tparam T 随机数类型
+     * @param min 最小值
+     * @param max 最大值
+     * @param count 随机数数量
+     * @return 随机数数组
+     */
+    template<typename T>
+    inline std::vector<T> randomUniform(const int32_t& min, const int32_t& max, const uint32_t& count)
+    {
+        //使用硬件熵源的非确定随机数生成器（随机数引擎）
+        static std::random_device rd;
+        //32 位梅森缠绕器，由松本与西村设计于 1998
+        static std::mt19937_64 mt(rd());
+        //产生在一个范围上均匀分布的整数值
+        std::uniform_int_distribution<T> dist(min, max);
+        std::vector<T> resVec{};
+        resVec.reserve(count);
+        for (uint32_t i = 0; i < count; ++i)
+        {
+            resVec.emplace_back(dist(mt));
+        }
+        return resVec;
+    }
+
+    /*!
+     * 生成均匀分布的随机数
+     * @tparam T 随机数类型
+     * @param min 最小值
+     * @param max 最大值
+     * @return 随机数数组
+     */
+    template<typename T>
+    inline T randomUniform(const int32_t& min, const int32_t& max)
+    {
+        //使用硬件熵源的非确定随机数生成器（随机数引擎）
+        static std::random_device rd;
+        //32 位梅森缠绕器，由松本与西村设计于 1998
+        static std::mt19937_64 mt(rd());
+        //产生在一个范围上均匀分布的整数值
+        std::uniform_int_distribution<T> dist(min, max);
+        std::vector<T> resVec{};
+        return dist(mt);
     }
 }
 

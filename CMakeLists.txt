@@ -31,5 +31,10 @@ add_executable(csgo_cheater ${src_list})
 #添加链接库
 target_link_libraries(csgo_cheater d3d9.lib d3dx9.lib d3dx9d.lib dwmapi.lib)
 
+
+add_executable(test ./Src/test.cpp Src/Timer.cpp Src/ThreadPool.cpp)
+add_executable(thtest ./Src/thTest.cpp Src/Timer.cpp)
+
+
 #message(${SRC_LIST});
 #cmake .. -G "Visual Studio 17 2022" -A Win32

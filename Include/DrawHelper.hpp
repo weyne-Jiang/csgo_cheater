@@ -3,7 +3,7 @@
 #include "d3d9.h"
 #include "d3dx9.h"
 #include "dwmapi.h"
-#include <process.h>
+#include "Timer.h"
 
 using namespace BaseData;
 using namespace BaseFunc;
@@ -11,9 +11,8 @@ using drawFunction = function<void()>;
 
 void drawTest();
 
-class DrawHelper : public Single<DrawHelper>
+class DrawHelper
 {
-	friend class Single<DrawHelper>;
 public:
 
     /*!
@@ -21,7 +20,7 @@ public:
      * @param winHand 窗口句柄
      * @return 是否成功
      */
-	bool createWindows(HWND winHand);
+	static bool createWindows(HWND winHand, WNDCLASSEX winCls = transWndCls(WNDCLASSEX(), DrawHelper::WinProc));
 
     /*!
      * @brief 创建窗口
@@ -29,27 +28,27 @@ public:
      * @param windowsName 窗口名
      * @return 是否成功
      */
-	bool createWindows(const string& className, const string& windowsName);
+    static bool createWindows(const string& className, const string& windowsName, WNDCLASSEX winCls = transWndCls(WNDCLASSEX(), DrawHelper::WinProc));
 
     /*!
      * @brief 注册绘制函数
      * @param drawFunc 绘制函数
      * @return 是否成功
      */
-	bool registerDrawFunc(const drawFunction& drawFunc) noexcept;
+    static bool registerDrawFunc(const drawFunction& drawFunc) noexcept;
 
     /*!
      * @brief 注销绘制函数
      * @param drawFunc 绘制函数
      * @return 是否成功
      */
-    bool unRegisterDrawFunc(const drawFunction& drawFunc) noexcept;
+    static bool unRegisterDrawFunc(const drawFunction& drawFunc) noexcept;
 
     /*!
      * @brief 初始化D3D
      * @return 是否成功
      */
-	bool initD3d();
+    static bool initD3d();
 
     /*!
      * @brief 消息处理函数
@@ -61,30 +60,44 @@ public:
      */
 	static LRESULT WINAPI WinProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam);
 
-    static DWORD WINAPI test(LPVOID lpThreadParameter)
+    typedef struct LisMsgThPara
     {
-        HWND curHwnd = FindWindowA("Direct3DWindowClass", "ShadowVolume");
-//	HWND curHwnd = FindWindowA("Valve001", "Counter-Strike: Global Offensive - Direct3D 9");
-        auto p = DrawHelper::getInstence();
-        p->createWindows(curHwnd);
-        p->initD3d();
-        p->registerDrawFunc(drawTest);
+        int a = 0;
+        char className[256]{};
+        char windowsName[256]{};
+        WNDCLASSEX wndClass = transWndCls(WNDCLASSEX(), DrawHelper::WinProc);
+    } *LPLMThPara;
+
+    static DWORD WINAPI listenMsg(LPVOID lpThreadParameter)
+    {
+        auto para = static_cast<LPLMThPara>(lpThreadParameter);
+
+        DrawHelper::createWindows(para->className, para->windowsName, para->wndClass);
+        DrawHelper::initD3d();
+        DrawHelper::registerDrawFunc(drawTest);
         MSG Message;
         ZeroMemory(&Message, sizeof(Message));
+
+        Timer timer;
+        uint32_t count = 0;
+        timer.start();
         while (GetMessage(&Message, nullptr, 0, 0))
         {
-            moveWin();
+            if (timer.totalTime() > 3*1000)
+            {
 
-            //处理窗口消息
-//            if(GetMessage(&Message, nullptr, 0, 0))
-//            if (PeekMessage(&Message, nullptr, 0, 0, PM_REMOVE))
-//            {
-                //将消息调度到窗口
-                DispatchMessage(&Message);
-                //虚拟按键消息转换为字符消息，加入消息队列，便于下次读取
-                TranslateMessage(&Message);
-//            }
-//            Sleep(10);
+                cout << "per sec run " << count << " step\n";
+                timer.restart();
+                count = 0;
+            }
+            count++;
+
+            moveWin();
+            //将消息调度到窗口
+            DispatchMessage(&Message);
+            //虚拟按键消息转换为字符消息，加入消息队列，便于下次读取
+            TranslateMessage(&Message);
+
         }
         return 0;
     }
@@ -92,36 +105,57 @@ public:
     /*!
      * @brief 清理资源
      */
-	void cleanD3d();
+    static void cleanD3d();
+
+
 
 	//消息循环
-	void messageLoop();
+    static void messageLoop();
+
+
 
     /*!
      * @brief 开始绘制
      */
-    void listenMsg();
+    static void start();
 
 	//同步透明窗口到游戏窗口
 	static void moveWin();
 
 	//开始绘制
-	void startDraw();
+    static void startDraw();
 
 	//结束绘制
-	void endDraw();
+    static void endDraw();
 
 	//绘制线段
-	void drawLine(Point2D& point1, Point2D& point2, float width, D3DCOLOR Color);
+    static void drawLine(Point2D& point1, Point2D& point2, float width, D3DCOLOR Color);
 
 	//绘制文字
-	void drawFront(long x, long y, const char* Str, D3DCOLOR Color);
+    static void drawFront(long x, long y, const char* Str, D3DCOLOR Color);
 
 	//绘制矩形
-	void drawRect(float X, float Y, float W, float H, float Width, D3DCOLOR Color);
+    static void drawRect(float X, float Y, float W, float H, float Width, D3DCOLOR Color);
 
 	//绘制填充矩形
-	void DrawBox(int x, int y, int w, int h, D3DCOLOR Color);
+    static void DrawBox(int x, int y, int w, int h, D3DCOLOR Color);
+
+    static inline WNDCLASSEX transWndCls(WNDCLASSEX wClass, WNDPROC WinProc)
+    {
+        wClass.cbClsExtra = NULL;
+        wClass.cbSize = sizeof(WNDCLASSEX);
+        wClass.cbWndExtra = NULL;
+        wClass.hbrBackground = CreateSolidBrush(RGB(0, 0, 0));
+        wClass.hCursor = LoadCursor(nullptr, IDC_ARROW);
+        wClass.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
+        wClass.hIconSm = LoadIcon(nullptr, IDI_APPLICATION);
+        wClass.hInstance = GetModuleHandle(nullptr);
+        wClass.lpfnWndProc = WinProc;
+        wClass.lpszClassName = "aa";
+        wClass.lpszMenuName = " ";
+        wClass.style = CS_VREDRAW | CS_HREDRAW;
+        return wClass;
+    }
 
 //	//获取绘制区域
 //	MARGINS getMargin();
@@ -132,9 +166,8 @@ public:
 //	//获取绘制函数
 //	drawFunction getDrawFunc();
 
-private:
-	DrawHelper();
-	~DrawHelper() override;
+	DrawHelper() = default;
+	~DrawHelper();
 
 private:
 	static MARGINS _margin; //绘图区域
@@ -152,5 +185,6 @@ private:
 	static int _windowH; //窗口高
 
 	static drawFunction _drawFunc; //绘制执行函数
+    static std::mutex _drawFuncLock; //绘制函数读写锁
     static std::thread _listenThread; //消息监听线程
 };

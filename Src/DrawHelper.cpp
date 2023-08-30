@@ -1,4 +1,10 @@
 #include "DrawHelper.hpp"
+#define DestroySubWin(hand) \
+    if (hand)\
+    {\
+    DestroyWindow(DrawHelper::hand);\
+    hand = nullptr;\
+    }
 
 MARGINS DrawHelper::_margin{}; //绘图区域
 LPDIRECT3D9 DrawHelper::_pD3d = nullptr; //D3D对象指针
@@ -14,45 +20,30 @@ int DrawHelper::_windowW = 0; //窗口宽
 int DrawHelper::_windowH = 0; //窗口高
 drawFunction DrawHelper::_drawFunc = nullptr; //绘制执行函数
 std::thread DrawHelper::_listenThread = thread(); //消息监听线程
+std::mutex DrawHelper::_drawFuncLock;
+
 void drawTest()
 {
-    auto p = DrawHelper::getInstence();
-    p->startDraw();
+    DrawHelper::startDraw();
     Point2D point1(250,250);
     Point2D point2(0, 0);
-    p->drawLine(point1, point2, 5, D3DCOLOR_XRGB(122, 255, 0));
+    DrawHelper::drawLine(point1, point2, 5, D3DCOLOR_XRGB(122, 255, 0));
     //drawRect(23, 45, 155, 300,567, D3DCOLOR_XRGB(122, 255, 0));
-    p->endDraw();
-}
-
-DrawHelper::DrawHelper()
-{
-
+    DrawHelper::endDraw();
 }
 
 DrawHelper::~DrawHelper()
 {
+    cleanD3d();
     _listenThread.join();
     //销毁消息
 }
 
-bool DrawHelper::createWindows(HWND winHand)
+bool DrawHelper::createWindows(HWND winHand, WNDCLASSEX winCls)
 {
     _winHwnd = winHand;
-
 	//初始化窗口类
-	_wClass.cbClsExtra = NULL;
-	_wClass.cbSize = sizeof(WNDCLASSEX);
-	_wClass.cbWndExtra = NULL;
-	_wClass.hbrBackground = (HBRUSH)CreateSolidBrush(RGB(0, 0, 0));
-	_wClass.hCursor = LoadCursor(nullptr, IDC_ARROW);
-	_wClass.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
-	_wClass.hIconSm = LoadIcon(nullptr, IDI_APPLICATION);
-	_wClass.hInstance = GetModuleHandle(nullptr);
-	_wClass.lpfnWndProc = (WNDPROC)WinProc;
-	_wClass.lpszClassName = "lpszClassName";
-	_wClass.lpszMenuName = "lpszMenuName";
-	_wClass.style = CS_VREDRAW | CS_HREDRAW;
+    _wClass = winCls;
 
 	//注册窗口
 	if (!RegisterClassEx(&_wClass))
@@ -70,24 +61,18 @@ bool DrawHelper::createWindows(HWND winHand)
 	GetWindowRect(_winHwnd, &_windowRect);
 	_windowW = _windowRect.right - _windowRect.left;
 	_windowH = _windowRect.bottom - _windowRect.top;
-	_drawHand = CreateWindowEx(WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_LAYERED, "lpszClassName", "lpszMenuName", WS_POPUP, 1, 1, _windowW, _windowH, nullptr, nullptr, nullptr, nullptr);
+	_drawHand = CreateWindowEx(WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_LAYERED, _wClass.lpszClassName, _wClass.lpszMenuName, WS_POPUP, 1, 1, _windowW, _windowH, nullptr, nullptr, nullptr, nullptr);
 
 	//显示窗口
 	SetLayeredWindowAttributes(_drawHand, 0, RGB(0, 0, 0), LWA_COLORKEY);
     ShowWindow(_drawHand, SW_SHOW);
-//    if (!ShowWindow(_drawHand, SW_SHOW))
-//    {
-//        warningInfo("显示窗口失败");
-//        return false;
-//    }
     return true;
 }
 
-//创建透明窗口
-bool DrawHelper::createWindows(const string& className, const string& windowsName)
+bool DrawHelper::createWindows(const string& className, const string& windowsName, WNDCLASSEX winCls)
 {
 	HWND winHwnd = FindWindowA(className.c_str(), windowsName.c_str());
-    return createWindows(winHwnd);
+    return createWindows(winHwnd, winCls);
 }
 
 //设置绘制函数
@@ -142,22 +127,20 @@ bool DrawHelper::initD3d()
 	return true;
 }
 
-//成员加一个指向此类的指针，解决静态函数调用非静态成员的问题。
-//消息处理函数
 LRESULT DrawHelper::WinProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
-	auto pDraw = DrawHelper::getInstence();
 	switch (Message)
 	{
         case WM_PAINT:
         {
-            if (pDraw->_pD3dDevice)
-                pDraw->_drawFunc();
+            std::lock_guard<decltype(_drawFuncLock)> lock(_drawFuncLock);
+            if (DrawHelper::_pD3dDevice)
+                DrawHelper::_drawFunc();
             break;
         }
         case WM_CREATE:
         {
-            if (DwmExtendFrameIntoClientArea(hWnd, &pDraw->_margin) != S_OK)
+            if (DwmExtendFrameIntoClientArea(hWnd, &DrawHelper::_margin) != S_OK)
                 return -1;
             break;
         }
@@ -173,14 +156,14 @@ LRESULT DrawHelper::WinProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lPara
         }
         case WM_DESTROY:
         {
-            pDraw->cleanD3d();
             PostQuitMessage(0);
             break;
         }
         case WM_CLOSE:
-            pDraw->cleanD3d();
-            PostQuitMessage(0);
+        {
+            DestroySubWin(_drawHand);
             break;
+        }
         default:
             return DefWindowProc(hWnd, Message, wParam, lParam);
         }
@@ -202,35 +185,49 @@ void DrawHelper::cleanD3d()
     _pD3d = nullptr;
     _pD3dDevice = nullptr;
 
-    CloseWindow(_drawHand);
+    DestroySubWin(_drawHand);
     ::UnregisterClass(_wClass.lpszClassName, _wClass.hInstance);
 }
 
-void DrawHelper::listenMsg()
+void DrawHelper::start()
 {
-    _listenThread = thread([&](){
-        while (true)
-        {
-            moveWin();
+    LisMsgThPara para;
+    strcpy(para.className, "Direct3DWindowClass");
+    strcpy(para.windowsName, "ShadowVolume");
+    para.a = 666;
 
-            //处理窗口消息
-            MSG Message;
-            ZeroMemory(&Message, sizeof(Message));
-
-            if (PeekMessage(&Message, nullptr, 0, 0, PM_REMOVE))
-            {
-                //将消息调度到窗口
-                DispatchMessage(&Message);
-                //虚拟按键消息转换为字符消息，加入消息队列，便于下次读取
-                TranslateMessage(&Message);
-            }
-            else
-            {
-                print("111\n");
-            }
-            Sleep(10);
-        }
-    });
+    CreateThread(nullptr, 0, &DrawHelper::listenMsg, &para, 0, nullptr);
+    //region win-stl compare
+//    _listenThread = thread([&](){
+//        DrawHelper::createWindows(para.className, para.windowsName, para.wndClass);
+//        DrawHelper::initD3d();
+//        DrawHelper::registerDrawFunc(drawTest);
+//        MSG Message;
+//        ZeroMemory(&Message, sizeof(Message));
+//
+//        Timer timer;
+//        uint32_t count = 0;
+//        timer.start();
+//        while (GetMessage(&Message, nullptr, 0, 0))
+//        {
+//            if (timer.totalTime() > 3*1000)
+//            {
+//
+//                cout << "per sec run " << count << " step\n";
+//                timer.restart();
+//                count = 0;
+//            }
+//            count++;
+//
+//            moveWin();
+//            //将消息调度到窗口
+//            DispatchMessage(&Message);
+//            //虚拟按键消息转换为字符消息，加入消息队列，便于下次读取
+//            TranslateMessage(&Message);
+//
+//        }
+//    });
+    //endregion
 }
 
 //消息循环

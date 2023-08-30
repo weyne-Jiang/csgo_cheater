@@ -1,6 +1,7 @@
 #pragma once
 #define _CRT_SECURE_NO_WARNINGS
 #include <Windows.h>
+#include <process.h>
 #include <TlHelp32.h>
 #include <Psapi.h>
 #include <iostream>
@@ -12,6 +13,16 @@
 #include <functional>
 #include <optional>
 #include <thread>
+#include <chrono>
+#include <cmath>
+#include <mutex>
+#include <condition_variable>
+#include <future>
+#include <queue>
+#include <future>
+#include <random>
+#include <assert.h>
+
 using std::string;
 using std::wstring;
 using std::map;
@@ -31,6 +42,8 @@ using std::function;
 using std::optional;
 using std::nullopt;
 using std::thread;
+using std::mutex;
+using namespace std::chrono;
 
 namespace setting
 {
